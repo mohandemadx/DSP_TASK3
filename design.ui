@@ -49,16 +49,16 @@
         <number>6</number>
        </property>
        <item row="0" column="0">
-        <widget class="QGraphicsView" name="InputGraph"/>
+        <widget class="PlotWidget" name="InputGraph"/>
        </item>
        <item row="0" column="1">
-        <widget class="QGraphicsView" name="OutputGraph"/>
+        <widget class="PlotWidget" name="OutputGraph"/>
        </item>
        <item row="2" column="0">
-        <widget class="QGraphicsView" name="SpectoGraph1"/>
+        <widget class="PlotWidget" name="SpectoGraph1"/>
        </item>
        <item row="2" column="1">
-        <widget class="QGraphicsView" name="SpectoGraph2"/>
+        <widget class="PlotWidget" name="SpectoGraph2"/>
        </item>
        <item row="1" column="0">
         <widget class="QCheckBox" name="showCheckBox">
@@ -243,7 +243,6 @@
          <property name="font">
           <font>
            <pointsize>9</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
@@ -443,7 +442,6 @@
           <font>
            <family>Nirmala UI</family>
            <pointsize>10</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -708,12 +706,19 @@
      <x>0</x>
      <y>0</y>
      <width>1227</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PlotWidget</class>
+   <extends>QGraphicsView</extends>
+   <header location="global">pyqtgraph</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="icons.qrc"/>
  </resources>
