@@ -39,6 +39,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         # Setting the Ui        
         self.SliderFrame.setMaximumHeight(200)
         self.change_mode(self.mode_comboBox.currentIndex())
+
         
         # Signals
         self.importButton.clicked.connect(lambda: self.upload(self.musicfileName))
@@ -47,6 +48,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.playButton1.clicked.connect(lambda: f.play_n_pause(self.playButton1, self.timer1))
         self.playButton2.clicked.connect(lambda: f.play_n_pause(self.playButton2, self.timer2))
         self.speedSlider.valueChanged.connect(lambda: f.speed(self.speedSlider.value(), self.speedLabel))
+
     
     
     # FUNCTIONS
@@ -76,16 +78,16 @@ class MainApp(QMainWindow, FORM_CLASS):
         
         if index == 0:
             self.sliders_list, self.indicators_list = f.create_sliders(mode.num_sliders, mode.labels, self.SliderFrame)
-            
+            f.synthesize_signal(self.InputGraph)
         elif index == 1:
             self.sliders_list, self.indicators_list = f.create_sliders(mode.num_sliders, mode.labels, self.SliderFrame)
-            
+            self.InputGraph.clear()
         elif index == 2:
             self.sliders_list, self.indicators_list = f.create_sliders(mode.num_sliders, mode.labels, self.SliderFrame)
-            
+            self.InputGraph.clear()
         elif index == 3:
             self.sliders_list, self.indicators_list = f.create_sliders(mode.num_sliders, mode.labels, self.SliderFrame)
-        
+            self.InputGraph.clear()
         # Refresh Sliders
         self.sliders_refresh()
         
@@ -99,7 +101,9 @@ class MainApp(QMainWindow, FORM_CLASS):
             for i, slider in enumerate(self.sliders_list):
                 self.indicators_list[i].setText(f"{slider.value()*2-10}")  
     
-    
+
+
+
         
         
    

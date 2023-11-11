@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt
+import numpy as np
 
 # VARIABLES
 time_interval = 1000 #ms
@@ -70,4 +71,24 @@ def speed(slider_value, speed_label):
     speed_label.setText(f'x {speed_factor}')
     time_interval = 1000*speed_factor #ms
     return time_interval
+def synthesize_signal(plot_widget):
+        fs = 1000  # Sampling frequency
+        T = 1 / fs  # Sampling period
+        t = np.arange(0, 1, T)  # Time vector from 0 to 1 second
+
+        # Number of frequency components
+        num_components = 10
+
+        # Frequencies of the components in the range 1 to 10 Hz
+        frequencies = np.linspace(1, 10, num_components)
+
+        # Amplitudes of the components (set to 1 for each component)
+        amplitudes = np.ones(num_components)
+
+        # Synthesize the signal in the time domain
+        signal_time_domain = np.zeros_like(t)
+        for i in range(num_components):
+            signal_time_domain += amplitudes[i] * np.sin(2 * np.pi * frequencies[i] * t)
+
+        plot_widget.plot(t,signal_time_domain,pen='b')
 
