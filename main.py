@@ -83,7 +83,10 @@ class MainApp(QMainWindow, FORM_CLASS):
     def change_mode(self, index):
         mode = self.mapping_mode[index]
         sliders_list, indicators_list = f.create_sliders(mode.num_sliders, mode.labels, self.SliderFrame, 2)
-        
+        if index==0:
+            f.synthesize_signal(self.InputGraph)
+        else:
+            self.InputGraph.clear()
         # Refresh Sliders
         self.sliders_refresh(sliders_list, indicators_list)
         
