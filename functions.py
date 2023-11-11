@@ -7,7 +7,7 @@ import numpy as np
 time_interval = 1000 #ms
 
 # FUNCTIONS
-def create_sliders(sliders_number, labels_list, frame):
+def create_sliders(sliders_number, labels_list, frame, alignment):
     clear(frame)
     sliders_list = []
     indicators = []
@@ -16,24 +16,41 @@ def create_sliders(sliders_number, labels_list, frame):
     for i in range(sliders_number):
         
         # create sliders and store them
-        vertical_slider = QSlider()
-        vertical_slider.setRange(0, 10)
-        vertical_slider.setValue(5)
-        vertical_slider.setOrientation(2)  # 2 corresponds to vertical orientation
+        slider = QSlider()
         
-        # creating labels
-        label = QLabel(labels_list[i])
-        label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        # Vertical Sliders
+        if alignment == 1: 
+            slider.setRange(0, 10)
+            slider.setValue(5)
+            
+            # creating labels
+            label = QLabel(labels_list[i])
+            label.setAlignment(Qt.AlignLeft | Qt.AlignBottom)
+            
+            # creating value indicators
+            indicator = QLabel('0')
+            indicator.setAlignment(Qt.AlignLeft | Qt.AlignTop)
 
-        # creating value indicators
-        indicator = QLabel('0')
-        indicator.setAlignment(Qt.AlignLeft | Qt.AlignBottom)
+        # Horizontal Sliders
+        else:
+            slider.setRange(0, 10)
+            slider.setValue(5)
+            
+            # creating labels
+            label = QLabel(labels_list[i])
+            label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            
+            # creating value indicators
+            indicator = QLabel('0')
+            indicator.setAlignment(Qt.AlignLeft | Qt.AlignBottom)
+            
+        slider.setOrientation(alignment)
         
         layout.addWidget(label)
-        layout.addWidget(vertical_slider)
+        layout.addWidget(slider)
         layout.addWidget(indicator)
         
-        sliders_list.append(vertical_slider)
+        sliders_list.append(slider)
         indicators.append(indicator)
         
     frame.setLayout(layout)

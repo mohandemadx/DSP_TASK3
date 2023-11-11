@@ -3,6 +3,20 @@ from collections import namedtuple
 r = namedtuple('Range', ['min', 'max'])
 
 
+class WindowType:
+    def __init__(self, labels, num_sliders):
+        self.labels = labels
+        self.num_sliders = num_sliders
+    
+    def __str__(self):
+        return f"labels: {self.labels}, num_sliders: {self.num_sliders}"
+
+hamming = WindowType(['Mean', 'Std'], 2)
+
+hanning = WindowType(['Mean'], 1)
+
+gaussian = WindowType(['Mean', 'Std'], 2)
+
 
 class Mode:
     def __init__(self, labels, frq_range, num_sliders):

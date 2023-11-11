@@ -24,11 +24,18 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.audio_data = None
         self.sliders_list = []
         self.indicators_list = []
+        self.window_sliders = []
+        self.window_indicators = []
         self.mapping_mode = { 
             0 : c.default,
             1 : c.ecg,
             2 : c.animals,
             3 : c.musical,
+            }
+        self.window_map = { 
+            0 : c.hamming,
+            1 : c.hanning,
+            2 : c.gaussian,
             }
         
         # Timers
@@ -39,16 +46,16 @@ class MainApp(QMainWindow, FORM_CLASS):
         # Setting the Ui        
         self.SliderFrame.setMaximumHeight(200)
         self.change_mode(self.mode_comboBox.currentIndex())
-
+        self.smoothing_window_type(self.window_comboBox.currentIndex())
         
         # Signals
         self.importButton.clicked.connect(lambda: self.upload(self.musicfileName))
         self.mode_comboBox.currentIndexChanged.connect(lambda: self.change_mode(self.mode_comboBox.currentIndex()))
+        self.window_comboBox.currentIndexChanged.connect(lambda: self.smoothing_window_type(self.window_comboBox.currentIndex()))
         self.playallButton.clicked.connect(lambda: f.play_n_pause(self.playallButton, self.timer))
         self.playButton1.clicked.connect(lambda: f.play_n_pause(self.playButton1, self.timer1))
         self.playButton2.clicked.connect(lambda: f.play_n_pause(self.playButton2, self.timer2))
         self.speedSlider.valueChanged.connect(lambda: f.speed(self.speedSlider.value(), self.speedLabel))
-
     
     
     # FUNCTIONS
@@ -75,35 +82,29 @@ class MainApp(QMainWindow, FORM_CLASS):
             
     def change_mode(self, index):
         mode = self.mapping_mode[index]
+        sliders_list, indicators_list = f.create_sliders(mode.num_sliders, mode.labels, self.SliderFrame, 2)
         
-        if index == 0:
-            self.sliders_list, self.indicators_list = f.create_sliders(mode.num_sliders, mode.labels, self.SliderFrame)
-            f.synthesize_signal(self.InputGraph)
-        elif index == 1:
-            self.sliders_list, self.indicators_list = f.create_sliders(mode.num_sliders, mode.labels, self.SliderFrame)
-            self.InputGraph.clear()
-        elif index == 2:
-            self.sliders_list, self.indicators_list = f.create_sliders(mode.num_sliders, mode.labels, self.SliderFrame)
-            self.InputGraph.clear()
-        elif index == 3:
-            self.sliders_list, self.indicators_list = f.create_sliders(mode.num_sliders, mode.labels, self.SliderFrame)
-            self.InputGraph.clear()
         # Refresh Sliders
-        self.sliders_refresh()
+        self.sliders_refresh(sliders_list, indicators_list)
         
-    def sliders_refresh(self):
-        for i, slider in enumerate(self.sliders_list):
-            slider = self.sliders_list[i]
-            slider.valueChanged.connect(self.update_indicators)    
+    def sliders_refresh(self, sliders, indicators):
+        if sliders:
+            for slider in sliders:
+                slider.valueChanged.connect(lambda: self.update_indicators(sliders, indicators))    
 
-    def update_indicators(self):
-        if self.sliders_list:
-            for i, slider in enumerate(self.sliders_list):
-                self.indicators_list[i].setText(f"{slider.value()*2-10}")  
+    def update_indicators(self, sliders, indicators):
+        if sliders:
+            for i, slider in enumerate(sliders):
+                indicators[i].setText(f"{slider.value()*2-10}")
     
-
-
-
+    def smoothing_window_type(self, index):
+        window = self.window_map[index]
+        
+        self.window_sliders, self.window_indicators = f.create_sliders(window.num_sliders, window.labels, self.WindowFrame, 1)
+        
+        # Refresh Sliders
+        self.sliders_refresh(self.window_sliders, self.window_indicators)
+            
         
         
    
