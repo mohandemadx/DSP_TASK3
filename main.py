@@ -36,6 +36,7 @@ class MainApp(QMainWindow, FORM_CLASS):
             0 : c.hamming,
             1 : c.hanning,
             2 : c.gaussian,
+            3 : c.rectangle,
             }
         
         # Timers

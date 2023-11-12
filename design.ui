@@ -505,24 +505,29 @@
           </font>
          </property>
          <property name="currentText">
-          <string>0</string>
+          <string>Hamming</string>
          </property>
          <property name="currentIndex">
           <number>0</number>
          </property>
          <item>
           <property name="text">
-           <string>0</string>
+           <string>Hamming</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>1</string>
+           <string>Hanning</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>2</string>
+           <string>Gaussian</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Rectangle</string>
           </property>
          </item>
         </widget>

@@ -11,12 +11,13 @@ class WindowType:
     def __str__(self):
         return f"labels: {self.labels}, num_sliders: {self.num_sliders}"
 
-hamming = WindowType(['Mean', 'Std'], 2)
+hamming = WindowType(['α'], 1)
 
-hanning = WindowType(['Mean'], 1)
+hanning = WindowType(['α'], 1)
 
 gaussian = WindowType(['Mean', 'Std'], 2)
 
+rectangle = WindowType(['constant'], 1)
 
 class Mode:
     def __init__(self, labels, frq_range, num_sliders):
