@@ -22,6 +22,13 @@ class MainApp(QMainWindow, FORM_CLASS):
         
         # Variables
         self.audio_data = None
+        if self.mode_comboBox.currentIndex()==0:
+            self.signal = f.synthesize_signal()
+        else:
+            self.signal = self.audio_data
+        self.amplitudes, self.frequency_comp = f.compute_fourier_transform(self.signal)
+        self.output_amplitudes = self.amplitudes.copy()
+
         self.sliders_list = []
         self.indicators_list = []
         self.window_sliders = []
@@ -48,6 +55,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.SliderFrame.setMaximumHeight(200)
         self.change_mode(self.mode_comboBox.currentIndex())
         self.smoothing_window_type(self.window_comboBox.currentIndex())
+
         
         # Signals
         self.importButton.clicked.connect(lambda: self.upload(self.musicfileName))
@@ -57,8 +65,9 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.playButton1.clicked.connect(lambda: f.play_n_pause(self.playButton1, self.timer1))
         self.playButton2.clicked.connect(lambda: f.play_n_pause(self.playButton2, self.timer2))
         self.speedSlider.valueChanged.connect(lambda: f.speed(self.speedSlider.value(), self.speedLabel))
-    
-    
+        for slider in self.sliders_list:
+            slider.valueChanged.connect(lambda value, sender=slider: self.modifying_amplitudes(self.sliders_list.index(sender), sender.value() * 2 - 10,self.amplitudes, self.output_amplitudes))
+
     # FUNCTIONS
     
     def upload(self, label):
@@ -80,26 +89,24 @@ class MainApp(QMainWindow, FORM_CLASS):
                 
                 # Read audio data as bytes
                 self.audio_data = audio_file.readframes(num_frames)
-            
+
+
     def change_mode(self, index):
         mode = self.mapping_mode[index]
-        sliders_list, indicators_list = f.create_sliders(mode.num_sliders, mode.labels, self.SliderFrame, 2)
-        if index==0:
-            f.synthesize_signal(self.InputGraph)
-        else:
-            self.InputGraph.clear()
-        # Refresh Sliders
-        self.sliders_refresh(sliders_list, indicators_list)
+        self.sliders_list, indicators_list = f.create_sliders(mode.num_sliders, mode.labels, self.SliderFrame, 2)
+        self.sliders_refresh(self.sliders_list, indicators_list)
         
     def sliders_refresh(self, sliders, indicators):
         if sliders:
             for slider in sliders:
-                slider.valueChanged.connect(lambda: self.update_indicators(sliders, indicators))    
+               slider.valueChanged.connect(lambda:self.update_indicators( sliders, indicators))
 
     def update_indicators(self, sliders, indicators):
         if sliders:
             for i, slider in enumerate(sliders):
                 indicators[i].setText(f"{slider.value()*2-10}")
+
+
     
     def smoothing_window_type(self, index):
         window = self.window_map[index]
@@ -108,6 +115,13 @@ class MainApp(QMainWindow, FORM_CLASS):
         
         # Refresh Sliders
         self.sliders_refresh(self.window_sliders, self.window_indicators)
+
+
+
+    def modifying_amplitudes(self,freq_component_index, factor,Input_amplitudes,Output_amplitudes):
+        Output_amplitudes[freq_component_index + 1] = factor * Input_amplitudes[freq_component_index + 1]
+        self.InputGraph.clear()
+        self.InputGraph.plot(self.frequency_comp,self.output_amplitudes)
             
         
         

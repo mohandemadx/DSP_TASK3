@@ -3,8 +3,10 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt
 import numpy as np
 
+
 # VARIABLES
 time_interval = 1000 #ms
+Ts=1/44100
 
 # FUNCTIONS
 def create_sliders(sliders_number, labels_list, frame, alignment):
@@ -88,12 +90,12 @@ def speed(slider_value, speed_label):
     speed_label.setText(f'x {speed_factor}')
     time_interval = 1000*speed_factor #ms
     return time_interval
-def synthesize_signal(plot_widget):
-        fs = 1000  # Sampling frequency
-        T = 1 / fs  # Sampling period
-        t = np.arange(0, 1, T)  # Time vector from 0 to 1 second
+def synthesize_signal():
+        fs = 1000
+        T = 1 / fs
+        t = np.arange(0, 1, T)
 
-        # Number of frequency components
+
         num_components = 10
 
         # Frequencies of the components in the range 1 to 10 Hz
@@ -107,5 +109,18 @@ def synthesize_signal(plot_widget):
         for i in range(num_components):
             signal_time_domain += amplitudes[i] * np.sin(2 * np.pi * frequencies[i] * t)
 
-        plot_widget.plot(t,signal_time_domain,pen='b')
+        return signal_time_domain
+
+def compute_fourier_transform(signal):
+    fourier_transform = np.fft.rfft(signal)
+    frequencies_fft = np.fft.rfftfreq(len(signal), 1/1000)
+    amplitudes = np.abs(fourier_transform)/(len(signal)/2)
+    return amplitudes, frequencies_fft
+
+
+
+
+
+
+
 
