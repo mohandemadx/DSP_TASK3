@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 import wave
 import classes as c
+import numpy as np
 from PyQt5 import QtCore
 
 
@@ -21,14 +22,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.setWindowTitle("Signal Equalizer")
         
         # Variables
-        self.audio_data = None
-        if self.mode_comboBox.currentIndex()==0:
-            self.signal = f.synthesize_signal()
-        else:
-            self.signal = self.audio_data
-        self.amplitudes, self.frequency_comp = f.compute_fourier_transform(self.signal)
-        self.output_amplitudes = self.amplitudes.copy()
-
+        self.audio_data = []
         self.sliders_list = []
         self.indicators_list = []
         self.window_sliders = []
@@ -88,14 +82,36 @@ class MainApp(QMainWindow, FORM_CLASS):
                 num_frames = audio_file.getnframes()
                 
                 # Read audio data as bytes
-                self.audio_data = audio_file.readframes(num_frames)
+                raw_audio_data = audio_file.readframes(num_frames)
+
+                # Convert raw bytes to numerical values (assuming 16-bit PCM)
+                self.audio_data = np.frombuffer(raw_audio_data, dtype=np.int16)
+
+                #Update the signal
+                self.update_signal()
+
 
 
     def change_mode(self, index):
         mode = self.mapping_mode[index]
         self.sliders_list, indicators_list = f.create_sliders(mode.num_sliders, mode.labels, self.SliderFrame, 2)
         self.sliders_refresh(self.sliders_list, indicators_list)
-        
+        self.update_signal()
+
+
+    def update_signal(self):
+        if self.mode_comboBox.currentIndex() == 0:
+            self.signal = f.synthesize_signal()
+            Ts = 1000
+
+        else:
+            self.signal = self.audio_data
+            Ts = 1/44100
+        if len(self.signal):
+                    self.amplitudes, self.frequency_comp = f.compute_fourier_transform(self.signal,Ts)
+                    self.output_amplitudes = self.amplitudes.copy()
+
+
     def sliders_refresh(self, sliders, indicators):
         if sliders:
             for slider in sliders:
@@ -118,11 +134,11 @@ class MainApp(QMainWindow, FORM_CLASS):
 
 
 
-    def modifying_amplitudes(self,freq_component_index, factor,Input_amplitudes,Output_amplitudes):
-        Output_amplitudes[freq_component_index + 1] = factor * Input_amplitudes[freq_component_index + 1]
-        self.InputGraph.clear()
-        self.InputGraph.plot(self.frequency_comp,self.output_amplitudes)
-            
+    def modifying_amplitudes(self,freq_component_index, gain,Input_amplitudes,Output_amplitudes):
+
+        Output_amplitudes[freq_component_index + 1] = gain * Input_amplitudes[freq_component_index + 1]
+
+
         
         
    

@@ -4,9 +4,6 @@ from PyQt5.QtCore import Qt
 import numpy as np
 
 
-# VARIABLES
-time_interval = 1000 #ms
-Ts=1/44100
 
 # FUNCTIONS
 def create_sliders(sliders_number, labels_list, frame, alignment):
@@ -111,9 +108,9 @@ def synthesize_signal():
 
         return signal_time_domain
 
-def compute_fourier_transform(signal):
+def compute_fourier_transform(signal,Ts):
     fourier_transform = np.fft.rfft(signal)
-    frequencies_fft = np.fft.rfftfreq(len(signal), 1/1000)
+    frequencies_fft = np.fft.rfftfreq(len(signal), Ts)
     amplitudes = np.abs(fourier_transform)/(len(signal)/2)
     return amplitudes, frequencies_fft
 
