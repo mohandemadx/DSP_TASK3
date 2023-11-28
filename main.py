@@ -59,8 +59,8 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.playButton1.clicked.connect(lambda: f.play_n_pause(self.playButton1, self.timer1))
         self.playButton2.clicked.connect(lambda: f.play_n_pause(self.playButton2, self.timer2))
         self.speedSlider.valueChanged.connect(lambda: f.speed(self.speedSlider.value(), self.speedLabel))
-        for slider in self.sliders_list:
-            slider.valueChanged.connect(lambda value, sender=slider: self.modifying_amplitudes(self.sliders_list.index(sender), sender.value() * 2 - 10,self.amplitudes, self.output_amplitudes))
+        # for slider in self.sliders_list:
+        #     slider.valueChanged.connect(lambda value, sender=slider: self.modifying_amplitudes(self.sliders_list.index(sender), sender.value() * 2 - 10,self.amplitudes, self.output_amplitudes))
 
     # FUNCTIONS
     
@@ -98,6 +98,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.sliders_list, indicators_list = f.create_sliders(mode.num_sliders, mode.labels, self.SliderFrame, 2)
         self.sliders_refresh(self.sliders_list, indicators_list)
         self.update_signal()
+        self.connect_slider_signals()
 
 
     def update_signal(self):
@@ -111,6 +112,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         if len(self.signal):
                     self.amplitudes, self.frequency_comp = f.compute_fourier_transform(self.signal,Ts)
                     self.output_amplitudes = self.amplitudes.copy()
+
 
 
     def sliders_refresh(self, sliders, indicators):
@@ -133,7 +135,9 @@ class MainApp(QMainWindow, FORM_CLASS):
         # Refresh Sliders
         self.sliders_refresh(self.window_sliders, self.window_indicators)
 
-
+    def connect_slider_signals(self):
+        for slider in self.sliders_list:
+            slider.valueChanged.connect(lambda value, slider=slider: self.modifying_amplitudes(self.sliders_list.index(slider),slider.value() * 2 - 10, self.amplitudes,self.output_amplitudes))
 
     def modifying_amplitudes(self,freq_component_index, gain,Input_amplitudes,Output_amplitudes):
         #Freq Ranges Mapping
@@ -142,8 +146,10 @@ class MainApp(QMainWindow, FORM_CLASS):
         default_mode = {key: key + 1 for key in range(10)}
         if self.mode_comboBox.currentIndex() == 0:
             Output_amplitudes[default_mode[freq_component_index]] = gain * Input_amplitudes[default_mode[freq_component_index]]
-        if self.mode_comboBox.currentIndex() == 2:
+        elif self.mode_comboBox.currentIndex() == 2:
             Output_amplitudes[Animals_mode[freq_component_index][0]:Animals_mode[freq_component_index][1]] = gain * Input_amplitudes[Animals_mode[freq_component_index][0]:Animals_mode[freq_component_index][1]]
+        self.InputGraph.clear()
+        self.InputGraph.plot(self.frequency_comp,Output_amplitudes)
 
 
         
