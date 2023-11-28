@@ -92,6 +92,7 @@ class MainApp(QMainWindow, FORM_CLASS):
 
 
 
+
     def change_mode(self, index):
         mode = self.mapping_mode[index]
         self.sliders_list, indicators_list = f.create_sliders(mode.num_sliders, mode.labels, self.SliderFrame, 2)
@@ -135,8 +136,14 @@ class MainApp(QMainWindow, FORM_CLASS):
 
 
     def modifying_amplitudes(self,freq_component_index, gain,Input_amplitudes,Output_amplitudes):
-
-        Output_amplitudes[freq_component_index + 1] = gain * Input_amplitudes[freq_component_index + 1]
+        #Freq Ranges Mapping
+        Animals_mode={0:[100,500],1:[500,2000],2:[200,8000],3:[2000,5000]}
+        Music_mode={}
+        default_mode = {key: key + 1 for key in range(10)}
+        if self.mode_comboBox.currentIndex() == 0:
+            Output_amplitudes[default_mode[freq_component_index]] = gain * Input_amplitudes[default_mode[freq_component_index]]
+        if self.mode_comboBox.currentIndex() == 2:
+            Output_amplitudes[Animals_mode[freq_component_index][0]:Animals_mode[freq_component_index][1]] = gain * Input_amplitudes[Animals_mode[freq_component_index][0]:Animals_mode[freq_component_index][1]]
 
 
         
