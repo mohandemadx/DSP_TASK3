@@ -113,11 +113,18 @@ def compute_fourier_transform(signal,Ts):
     fourier_transform = np.fft.rfft(signal)
     frequencies_fft = np.fft.rfftfreq(len(signal), Ts)
     amplitudes = np.abs(fourier_transform)/(len(signal)/2)
-    return amplitudes, frequencies_fft
+    phases= np.angle(fourier_transform)/(len(signal)/2)
+    return amplitudes, frequencies_fft,phases
 
-#def apply_smoothing_window(output_amplitudes):
+def apply_smoothing_window(output_amplitudes):
+    pass
 
-#def update_plotting(output_amplitudes):
+def update_plotting(output_amplitudes):
+    pass
+
+def compute_inverse_fourier_transform():
+    pass
+
 
 def plot_waveform(data, sample_rate, plot_widget):
     time = np.arange(0, len(data)) / sample_rate
