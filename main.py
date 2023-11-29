@@ -11,6 +11,7 @@ import classes as c
 import numpy as np
 from PyQt5 import QtCore
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
+import pyqtgraph as pg
 
 
 FORM_CLASS, _ = loadUiType(path.join(path.dirname(__file__), "design.ui"))
@@ -36,6 +37,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.musical = c.Mode(['Drums', 'Trumpet', 'Flute', 'Piano'], [1 for _ in range(4)], 4)
 
         # Variables
+        self.line_position = 0
         self.audio_data = []
         self.sliders_list = []
         self.indicators_list = []
@@ -58,7 +60,11 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.timer = QtCore.QTimer()
         self.timer1 = QtCore.QTimer()
         self.timer2 = QtCore.QTimer()
-
+        self.timer.timeout.connect(lambda: f.time_tracker(self.vertical_line1, self.line_position))
+        self.timer.timeout.connect(lambda: f.time_tracker(self.vertical_line2, self.line_position))
+        # self.timer1.timeout.connect(self.timer_timeout)
+        # self.timer2.timeout.connect(self.timer_timeout)
+        
         # Audio Players
         self.media_playerIN = QMediaPlayer()
         self.media_playerOUT = QMediaPlayer()
@@ -71,6 +77,18 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.OutputGraph.setBackground('w')
         self.SpectoGraph1.setBackground('w')
         self.SpectoGraph2.setBackground('w')
+        
+        
+        self.vertical_line1 = pg.PlotCurveItem(pen='r')
+        self.vertical_line2 = pg.PlotCurveItem(pen='r')
+        self.InputGraph.addItem(self.vertical_line1)
+        self.OutputGraph.addItem(self.vertical_line2)
+        
+        x_data = [0, 0]
+        y_data = [-20000, 20000]  # You can adjust the y values based on your plot's range
+
+        self.vertical_line1.setData(x=x_data, y=y_data)
+        self.vertical_line2.setData(x=x_data, y=y_data)
 
         # Signals
         self.importButton.clicked.connect(lambda: self.upload(self.musicfileName))

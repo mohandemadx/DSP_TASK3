@@ -67,7 +67,6 @@ def clear(frame):
                 widget.deleteLater()
              
 def play_n_pause(button, timer):
-
     if (timer.isActive()):
         icon = QIcon("icons/play.png")  # Use the resource path
         button.setIcon(icon)
@@ -75,7 +74,7 @@ def play_n_pause(button, timer):
     else:
         icon = QIcon("icons/pause.png")  # Use the resource path
         button.setIcon(icon)
-        timer.start()
+        timer.start(10)
 
 def speed(slider_value, speed_label): 
     map_speed_factor = {
@@ -135,9 +134,9 @@ def plot_waveform(data, sample_rate, plot_widget):
     plot_widget.setLabel('bottom', 'Time (s)')
     plot_widget.showGrid(x=True, y=True)
     
-def update_sound_slider(data, sample_rate, slider):
-    time = np.arange(0, len(data)) / sample_rate
-    slider.setRange(time)
+# def update_sound_slider(data, sample_rate, slider):
+#     time = np.arange(0, len(data)) / sample_rate
+#     slider.setRange(time)
 
 def play_sound(sound_data, sample_rate, button, timer):
     pass
@@ -158,4 +157,12 @@ def plot_specto(data, sample_rate, frame):
     canvas.figure = plt.gcf()
     canvas.draw()
 
+def time_tracker(vertical_line, line_position):
+    line_position += 0.1
 
+    # Set the data for the vertical line
+    x_data = [line_position, line_position]
+    y_data = [-20000, 20000]  # You can adjust the y values based on your plot's range
+
+    vertical_line.setData(x=x_data, y=y_data)
+    
