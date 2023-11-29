@@ -116,7 +116,7 @@ class MainApp(QMainWindow, FORM_CLASS):
             Ts = 1/44100
             
         if len(self.signal):
-                    self.amplitudes, self.frequency_comp = f.compute_fourier_transform(self.signal,Ts)
+                    self.amplitudes, self.frequency_comp ,self.phases= f.compute_fourier_transform(self.signal,Ts)
                     self.output_amplitudes = self.amplitudes.copy()
 
 
