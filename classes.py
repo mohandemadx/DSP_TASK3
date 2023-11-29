@@ -29,10 +29,10 @@ class Mode:
         return f"labels: {self.labels}, frq_range: {self.frq_range}, num_sliders: {self.num_sliders}"
 
 
-default = Mode([f'{i} to {i+1} kHz' for i in range(10)], [r(i*1000+1, (i+1)*1000) for i in range(10)], 10) 
+default = Mode([f'{i} to {i+1} KHz' for i in range(10)], [r(i*1000+1, (i+1)*1000) for i in range(10)], 10)
 
 ecg = Mode(['A1', 'A2', 'A3'], [1 for _ in range(3)], 3)
 
-animals = Mode(['Duck', 'Dog', 'Horse', 'Cow'], [1 for _ in range(4)], 4)
+animals = Mode(['Duck', 'Dog', 'Monkey', 'Owl'], [1 for _ in range(4)], 4)
     
-musical = Mode(['Guitar', 'Piano', 'Drums', 'Saxphone'], [1 for _ in range(4)], 4)
+musical = Mode(['Drums', 'Trumpet', 'Flute', 'Piano'], [1 for _ in range(4)], 4)

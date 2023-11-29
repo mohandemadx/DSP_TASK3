@@ -142,12 +142,17 @@ class MainApp(QMainWindow, FORM_CLASS):
     def modifying_amplitudes(self,freq_component_index, gain,Input_amplitudes,Output_amplitudes):
         #Freq Ranges Mapping
         Animals_mode={0:[100,500],1:[500,2000],2:[200,8000],3:[2000,5000]}
-        Music_mode={}
+        Music_mode={0:[30,150],1:[349,1400],2:[262,2500],3:[27.5,4180]}
+        ECG_mode={0:[1,5],1:[2,10],2:[10,20]}
         default_mode = {key: key + 1 for key in range(10)}
         if self.mode_comboBox.currentIndex() == 0:
             Output_amplitudes[default_mode[freq_component_index]] = gain * Input_amplitudes[default_mode[freq_component_index]]
+        elif self.mode_comboBox.currentIndex() == 1:
+            Output_amplitudes[ECG_mode[freq_component_index][0]:ECG_mode[freq_component_index][1]] = gain * Input_amplitudes[ECG_mode[freq_component_index][0]:ECG_mode[freq_component_index][1]]
         elif self.mode_comboBox.currentIndex() == 2:
             Output_amplitudes[Animals_mode[freq_component_index][0]:Animals_mode[freq_component_index][1]] = gain * Input_amplitudes[Animals_mode[freq_component_index][0]:Animals_mode[freq_component_index][1]]
+        elif self.mode_comboBox.currentIndex() == 3:
+            Output_amplitudes[Music_mode[freq_component_index][0]:Music_mode[freq_component_index][1]] = gain * Input_amplitudes[Music_mode[freq_component_index][0]:Music_mode[freq_component_index][1]]
         self.InputGraph.clear()
         self.InputGraph.plot(self.frequency_comp,Output_amplitudes)
 
