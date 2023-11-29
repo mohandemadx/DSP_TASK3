@@ -1,4 +1,5 @@
 # File: main.py
+from collections import namedtuple
 import sys
 from os import path
 from PyQt5.uic import loadUiType
@@ -22,6 +23,18 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.setupUi(self)
         self.setWindowTitle("Signal Equalizer")
 
+        # Objects
+        self.hamming = c.WindowType(['α'], 1)
+        self.hanning = c.WindowType(['α'], 1)
+        self.gaussian = c.WindowType(['Mean', 'Std'], 2)
+        self.rectangle = c.WindowType(['constant'], 1)
+        
+        r = namedtuple('Range', ['min', 'max'])
+        self.default = c.Mode([f'{i} to {i+1} KHz' for i in range(10)], [r(i*1000+1, (i+1)*1000) for i in range(10)], 10)
+        self.ecg = c.Mode(['A1', 'A2', 'A3'], [1 for _ in range(3)], 3)
+        self.animals = c.Mode(['Duck', 'Dog', 'Monkey', 'Owl'], [1 for _ in range(4)], 4)
+        self.musical = c.Mode(['Drums', 'Trumpet', 'Flute', 'Piano'], [1 for _ in range(4)], 4)
+
         # Variables
         self.audio_data = []
         self.sliders_list = []
@@ -29,16 +42,16 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.window_sliders = []
         self.window_indicators = []
         self.mapping_mode = {
-            0 : c.default,
-            1 : c.ecg,
-            2 : c.animals,
-            3 : c.musical,
+            0 : self.default,
+            1 : self.ecg,
+            2 : self.animals,
+            3 : self.musical,
             }
         self.window_map = {
-            0 : c.hamming,
-            1 : c.hanning,
-            2 : c.gaussian,
-            3 : c.rectangle,
+            0 : self.hamming,
+            1 : self.hanning,
+            2 : self.gaussian,
+            3 : self.rectangle,
             }
 
         # Timers
