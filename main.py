@@ -85,19 +85,21 @@ class MainApp(QMainWindow, FORM_CLASS):
                 raw_audio_data = audio_file.readframes(num_frames)
 
                 # Convert raw bytes to numerical values (assuming 16-bit PCM)
-                self.audio_data = np.frombuffer(raw_audio_data, dtype=np.int16)
+                audio_data = np.frombuffer(raw_audio_data, dtype=np.int16)
 
-                #Update the signal
+                sample_width = audio_file.getsampwidth()
+                sample_rate = audio_file.getframerate()
+                
+                f.plot_waveform(audio_data, sample_rate, self.InputGraph)
+                
+                # Update the signal
                 self.update_signal()
-
-
 
     def change_mode(self, index):
         mode = self.mapping_mode[index]
         self.sliders_list, indicators_list = f.create_sliders(mode.num_sliders, mode.labels, self.SliderFrame, 2)
         self.sliders_refresh(self.sliders_list, indicators_list)
         self.update_signal()
-
 
     def update_signal(self):
         if self.mode_comboBox.currentIndex() == 0:
@@ -107,10 +109,10 @@ class MainApp(QMainWindow, FORM_CLASS):
         else:
             self.signal = self.audio_data
             Ts = 1/44100
+            
         if len(self.signal):
                     self.amplitudes, self.frequency_comp = f.compute_fourier_transform(self.signal,Ts)
                     self.output_amplitudes = self.amplitudes.copy()
-
 
     def sliders_refresh(self, sliders, indicators):
         if sliders:
@@ -122,8 +124,6 @@ class MainApp(QMainWindow, FORM_CLASS):
             for i, slider in enumerate(sliders):
                 indicators[i].setText(f"{slider.value()*2-10}")
 
-
-    
     def smoothing_window_type(self, index):
         window = self.window_map[index]
         
@@ -131,8 +131,6 @@ class MainApp(QMainWindow, FORM_CLASS):
         
         # Refresh Sliders
         self.sliders_refresh(self.window_sliders, self.window_indicators)
-
-
 
     def modifying_amplitudes(self,freq_component_index, gain,Input_amplitudes,Output_amplitudes):
 

@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt
 import numpy as np
-
+import wave
 
 
 # FUNCTIONS
@@ -73,7 +73,7 @@ def play_n_pause(button, timer):
     else:
         icon = QIcon("icons/pause.png")  # Use the resource path
         button.setIcon(icon)
-        timer.start(time_interval)     
+        timer.start(1000)
 
 def speed(slider_value, speed_label): 
     map_speed_factor = {
@@ -87,6 +87,7 @@ def speed(slider_value, speed_label):
     speed_label.setText(f'x {speed_factor}')
     time_interval = 1000*speed_factor #ms
     return time_interval
+
 def synthesize_signal():
         fs = 1000
         T = 1 / fs
@@ -114,10 +115,18 @@ def compute_fourier_transform(signal,Ts):
     amplitudes = np.abs(fourier_transform)/(len(signal)/2)
     return amplitudes, frequencies_fft
 
+def plot_waveform(data, sample_rate, plot_widget):
+    time = np.arange(0, len(data)) / sample_rate
+    plot_widget.plot(time, data, pen='b')
+    plot_widget.setLabel('left', 'Amplitude')
+    plot_widget.setLabel('bottom', 'Time (s)')
+    plot_widget.showGrid(x=True, y=True)
+    
+def update_sound_slider(data, sample_rate, slider):
+    time = np.arange(0, len(data)) / sample_rate
+    slider.setRange(time)
 
-
-
-
-
+def play_sound(data, sample_rate):
+    pass
 
 
