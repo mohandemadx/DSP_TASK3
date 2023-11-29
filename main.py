@@ -67,6 +67,10 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.SliderFrame.setMaximumHeight(200)
         self.change_mode(self.mode_comboBox.currentIndex())
         self.smoothing_window_type(self.window_comboBox.currentIndex())
+        self.InputGraph.setBackground('w')
+        self.OutputGraph.setBackground('w')
+        self.SpectoGraph1.setBackground('w')
+        self.SpectoGraph2.setBackground('w')
 
         # Signals
         self.importButton.clicked.connect(lambda: self.upload(self.musicfileName))
@@ -108,6 +112,9 @@ class MainApp(QMainWindow, FORM_CLASS):
                 sample_rate = audio_file.getframerate()
                 
                 f.plot_waveform(audio_data, sample_rate, self.InputGraph)
+                f.plot_specto(audio_data, sample_rate, self.spectoframe1)
+                f.plot_waveform(audio_data, sample_rate, self.OutputGraph)
+                f.plot_specto(audio_data, sample_rate, self.spectoframe2)
                 
                 # Update the signal
                 self.update_signal()
@@ -132,7 +139,6 @@ class MainApp(QMainWindow, FORM_CLASS):
                     self.amplitudes, self.frequency_comp ,self.phases= f.compute_fourier_transform(self.signal,Ts)
                     self.output_amplitudes = self.amplitudes.copy()
 
-
     def sliders_refresh(self, sliders, indicators):
         if sliders:
             for slider in sliders:
@@ -154,7 +160,6 @@ class MainApp(QMainWindow, FORM_CLASS):
     def connect_slider_signals(self):
         for slider in self.sliders_list:
             slider.valueChanged.connect(lambda value, slider=slider: self.modifying_amplitudes(self.sliders_list.index(slider),slider.value() * 2 - 10, self.amplitudes,self.output_amplitudes))
-
 
     def modifying_amplitudes(self, freq_component_index, gain, input_amplitudes, output_amplitudes):
         # Frequency Ranges Mapping

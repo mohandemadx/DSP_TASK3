@@ -1,56 +1,67 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QFileDialog
-from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
+import numpy as np
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QFrame, QPushButton, QFileDialog, QWidget
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt
+from scipy.io import wavfile
 
-class AudioPlayer(QMainWindow):
+class SpectrogramWidget(QMainWindow):
     def __init__(self):
         super().__init__()
 
         self.init_ui()
 
     def init_ui(self):
-        # Create a media player instance
-        self.media_player = QMediaPlayer()
+        self.central_widget = QWidget(self)
+        self.setCentralWidget(self.central_widget)
+        layout = QVBoxLayout()
 
-        # Set up the UI
-        play_button = QPushButton('Play', self)
-        play_button.clicked.connect(self.play_audio)
+        # Create a QFrame to hold the matplotlib plot
+        self.frame = QFrame(self.central_widget)
+        layout.addWidget(self.frame)
 
-        pause_button = QPushButton('Pause', self)
-        pause_button.clicked.connect(self.pause_audio)
+        # Create a matplotlib FigureCanvas
+        self.canvas = FigureCanvas(plt.Figure())
+        self.frame_layout = QVBoxLayout(self.frame)
+        self.frame_layout.addWidget(self.canvas)
 
-        file_button = QPushButton('Select File', self)
-        file_button.clicked.connect(self.select_file)
+        # Create a button to load a .wav file
+        self.load_button = QPushButton('Load .wav File', self.central_widget)
+        self.load_button.clicked.connect(self.load_wav_file)
+        layout.addWidget(self.load_button)
 
-        self.setGeometry(100, 100, 400, 200)
-        self.setWindowTitle('Audio Player')
+        self.central_widget.setLayout(layout)
 
-        play_button.move(50, 50)
-        pause_button.move(150, 50)
-        file_button.move(250, 50)
+    def load_wav_file(self):
+        file_dialog = QFileDialog()
+        file_dialog.setNameFilter("WAV files (*.wav)")
+        file_dialog.setDefaultSuffix("wav")
 
-    def play_audio(self):
-        # Load a sound file
-        if hasattr(self, 'file_path'):
-            media_content = QMediaContent(QMediaContent, self.file_path)
-            self.media_player.setMedia(media_content)
-            self.media_player.play()
+        if file_dialog.exec_():
+            file_path = file_dialog.selectedFiles()[0]
+            self.plot_spectrogram(file_path)
 
-    def pause_audio(self):
-        # Pause the audio
-        self.media_player.pause()
+    def plot_spectrogram(self, file_path):
+        # Read the .wav file
+        sample_rate, data = wavfile.read(file_path)
 
-    def select_file(self):
-        # Open a file dialog to select a .wav file
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        file_name, _ = QFileDialog.getOpenFileName(self, "Select .wav file", "", "WAV Files (*.wav);;All Files (*)", options=options)
-        
-        if file_name:
-            self.file_path = file_name
+        # Plot the spectrogram
+        plt.figure()
+        plt.specgram(data, Fs=sample_rate, cmap='viridis', aspect='auto')
+        plt.xlabel('Time (s)')
+        plt.ylabel('Frequency (Hz)')
+        plt.title('Spectrogram')
+        self.canvas.figure.clear()
+        self.canvas.figure = plt.gcf()
+        self.canvas.draw()
+
+def main():
+    app = QApplication(sys.argv)
+    window = SpectrogramWidget()
+    window.setGeometry(100, 100, 800, 600)
+    window.setWindowTitle('Spectrogram Viewer')
+    window.show()
+    sys.exit(app.exec_())
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    player = AudioPlayer()
-    player.show()
-    sys.exit(app.exec_())
+    main()

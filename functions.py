@@ -2,9 +2,9 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt
 import numpy as np
-import wave
-import sounddevice as sd
-import classes as c
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt
+
 
 
 # FUNCTIONS
@@ -140,11 +140,22 @@ def update_sound_slider(data, sample_rate, slider):
     slider.setRange(time)
 
 def play_sound(sound_data, sample_rate, button, timer):
-        if sound_data is not None and sample_rate is not None:
-            player_thread = c.SoundPlayer(sound_data, sample_rate)
-            player_thread.finished.connect(lambda: playback_finished(button, timer))
-            player_thread.start()
+    pass
 
-def playback_finished(button, timer):
-    play_n_pause(button, timer)
+def plot_specto(data, sample_rate, frame):
+    canvas = FigureCanvas(plt.Figure())
+    clear(frame)
+    layout = frame.layout()
+    layout.addWidget(canvas)
+        
+    # Plot the spectrogram
+    plt.figure()
+    plt.specgram(data, Fs=sample_rate, cmap='viridis', aspect='auto')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Frequency (Hz)')
+    plt.title('Spectrogram')
+    canvas.figure.clear()
+    canvas.figure = plt.gcf()
+    canvas.draw()
+
 
