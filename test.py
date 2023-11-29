@@ -1,111 +1,56 @@
 import sys
-import numpy as np
-import wave
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog
-from PyQt5.QtCore import QThread, pyqtSignal
-import pyqtgraph as pg
-import sounddevice as sd
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QFileDialog
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 
-class WaveformPlot(QWidget):
-    def __init__(self, parent=None):
-        super(WaveformPlot, self).__init__(parent)
-
-        self.plot_widget = pg.PlotWidget()
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(self.plot_widget)
-
-        self.setLayout(self.layout)
-
-    def plot_waveform(self, data, sample_rate):
-        time = np.arange(0, len(data)) / sample_rate
-        self.plot_widget.plot(time, data, pen='b')
-        self.plot_widget.setLabel('left', 'Amplitude')
-        self.plot_widget.setLabel('bottom', 'Time (s)')
-        self.plot_widget.showGrid(x=True, y=True)
-
-class SoundPlayer(QThread):
-    finished = pyqtSignal()
-
-    def __init__(self, data, sample_rate, parent=None):
-        super(SoundPlayer, self).__init__(parent)
-        self.data = data
-        self.sample_rate = sample_rate
-
-    def run(self):
-        import sounddevice as sd  # Make sure to install sounddevice using `pip install sounddevice`
-        sd.play(self.data, self.sample_rate)
-        sd.wait()
-        self.finished.emit()
-
-class MainWindow(QMainWindow):
+class AudioPlayer(QMainWindow):
     def __init__(self):
-        super(MainWindow, self).__init__()
+        super().__init__()
 
-        self.setWindowTitle('Waveform Viewer')
-        self.setGeometry(100, 100, 800, 600)
+        self.init_ui()
 
-        self.central_widget = WaveformPlot(self)
-        self.setCentralWidget(self.central_widget)
+    def init_ui(self):
+        # Create a media player instance
+        self.media_player = QMediaPlayer()
 
-        self.open_button = QPushButton('Open .wav file', self)
-        self.play_button = QPushButton('Play', self)
-        self.play_button.setEnabled(False)
+        # Set up the UI
+        play_button = QPushButton('Play', self)
+        play_button.clicked.connect(self.play_audio)
 
-        self.open_button.clicked.connect(self.load_wav_file)
-        self.play_button.clicked.connect(self.play_sound)
+        pause_button = QPushButton('Pause', self)
+        pause_button.clicked.connect(self.pause_audio)
 
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(self.open_button)
-        self.layout.addWidget(self.play_button)
-        self.layout.addWidget(self.central_widget)
+        file_button = QPushButton('Select File', self)
+        file_button.clicked.connect(self.select_file)
 
-        self.main_widget = QWidget()
-        self.main_widget.setLayout(self.layout)
-        self.setCentralWidget(self.main_widget)
+        self.setGeometry(100, 100, 400, 200)
+        self.setWindowTitle('Audio Player')
 
-        self.sound_data = None
-        self.sample_rate = None
-        self.player_thread = None
+        play_button.move(50, 50)
+        pause_button.move(150, 50)
+        file_button.move(250, 50)
 
-    def load_wav_file(self):
+    def play_audio(self):
+        # Load a sound file
+        if hasattr(self, 'file_path'):
+            media_content = QMediaContent(QMediaContent, self.file_path)
+            self.media_player.setMedia(media_content)
+            self.media_player.play()
+
+    def pause_audio(self):
+        # Pause the audio
+        self.media_player.pause()
+
+    def select_file(self):
+        # Open a file dialog to select a .wav file
         options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getOpenFileName(self, "Open .wav file", "", "Waveform Audio File (*.wav);;All Files (*)", options=options)
-
+        options |= QFileDialog.DontUseNativeDialog
+        file_name, _ = QFileDialog.getOpenFileName(self, "Select .wav file", "", "WAV Files (*.wav);;All Files (*)", options=options)
+        
         if file_name:
-            self.sound_data, self.sample_rate = self.read_wav_file(file_name)
-            self.display_waveform()
-
-    def read_wav_file(self, file_name):
-        with wave.open(file_name, 'rb') as wav_file:
-            sample_width = wav_file.getsampwidth()
-            sample_rate = wav_file.getframerate()
-            num_frames = wav_file.getnframes()
-
-            raw_data = wav_file.readframes(num_frames)
-            audio_data = np.frombuffer(raw_data, dtype=np.int16)
-
-            return audio_data, sample_rate
-
-    def display_waveform(self):
-        self.central_widget.plot_widget.clear()
-        self.central_widget.plot_waveform(self.sound_data, self.sample_rate)
-        self.play_button.setEnabled(True)
-
-    def play_sound(self):
-        if self.sound_data is not None and self.sample_rate is not None:
-            self.player_thread = SoundPlayer(self.sound_data, self.sample_rate)
-            self.player_thread.finished.connect(self.playback_finished)
-            self.play_button.setEnabled(False)
-            self.player_thread.start()
-
-    def playback_finished(self):
-        self.play_button.setEnabled(True)
-
-def main():
-    app = QApplication(sys.argv)
-    main_window = MainWindow()
-    main_window.show()
-    sys.exit(app.exec_())
+            self.file_path = file_name
 
 if __name__ == '__main__':
-    main()
+    app = QApplication(sys.argv)
+    player = AudioPlayer()
+    player.show()
+    sys.exit(app.exec_())

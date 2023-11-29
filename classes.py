@@ -1,4 +1,5 @@
 from collections import namedtuple
+from PyQt5.QtCore import QThread, pyqtSignal
 
 r = namedtuple('Range', ['min', 'max'])
 
@@ -36,3 +37,18 @@ ecg = Mode(['A1', 'A2', 'A3'], [1 for _ in range(3)], 3)
 animals = Mode(['Duck', 'Dog', 'Monkey', 'Owl'], [1 for _ in range(4)], 4)
     
 musical = Mode(['Drums', 'Trumpet', 'Flute', 'Piano'], [1 for _ in range(4)], 4)
+
+
+class SoundPlayer(QThread):
+    finished = pyqtSignal()
+
+    def __init__(self, data, sample_rate, parent=None):
+        super(SoundPlayer, self).__init__(parent)
+        self.data = data
+        self.sample_rate = sample_rate
+
+    def run(self):
+        import sounddevice as sd  # Make sure to install sounddevice using `pip install sounddevice`
+        sd.play(self.data, self.sample_rate)
+        sd.wait()
+        self.finished.emit()

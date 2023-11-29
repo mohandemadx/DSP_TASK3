@@ -9,6 +9,7 @@ import wave
 import classes as c
 import numpy as np
 from PyQt5 import QtCore
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 
 
 FORM_CLASS, _ = loadUiType(path.join(path.dirname(__file__), "design.ui"))
@@ -45,11 +46,14 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.timer1 = QtCore.QTimer()
         self.timer2 = QtCore.QTimer()
 
+        # Audio Players
+        self.media_playerIN = QMediaPlayer()
+        self.media_playerOUT = QMediaPlayer()
+        
         # Setting the Ui
         self.SliderFrame.setMaximumHeight(200)
         self.change_mode(self.mode_comboBox.currentIndex())
         self.smoothing_window_type(self.window_comboBox.currentIndex())
-
 
         # Signals
         self.importButton.clicked.connect(lambda: self.upload(self.musicfileName))

@@ -3,6 +3,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt
 import numpy as np
 import wave
+import sounddevice as sd
+import classes as c
 
 
 # FUNCTIONS
@@ -73,7 +75,7 @@ def play_n_pause(button, timer):
     else:
         icon = QIcon("icons/pause.png")  # Use the resource path
         button.setIcon(icon)
-        timer.start(1000)
+        timer.start()
 
 def speed(slider_value, speed_label): 
     map_speed_factor = {
@@ -130,7 +132,12 @@ def update_sound_slider(data, sample_rate, slider):
     time = np.arange(0, len(data)) / sample_rate
     slider.setRange(time)
 
-def play_sound(data, sample_rate):
-    pass
+def play_sound(sound_data, sample_rate, button, timer):
+        if sound_data is not None and sample_rate is not None:
+            player_thread = c.SoundPlayer(sound_data, sample_rate)
+            player_thread.finished.connect(lambda: playback_finished(button, timer))
+            player_thread.start()
 
+def playback_finished(button, timer):
+    play_n_pause(button, timer)
 
