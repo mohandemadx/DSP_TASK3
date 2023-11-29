@@ -20,37 +20,37 @@ class MainApp(QMainWindow, FORM_CLASS):
 
         self.setupUi(self)
         self.setWindowTitle("Signal Equalizer")
-        
+
         # Variables
         self.audio_data = []
         self.sliders_list = []
         self.indicators_list = []
         self.window_sliders = []
         self.window_indicators = []
-        self.mapping_mode = { 
+        self.mapping_mode = {
             0 : c.default,
             1 : c.ecg,
             2 : c.animals,
             3 : c.musical,
             }
-        self.window_map = { 
+        self.window_map = {
             0 : c.hamming,
             1 : c.hanning,
             2 : c.gaussian,
             3 : c.rectangle,
             }
-        
+
         # Timers
         self.timer = QtCore.QTimer()
         self.timer1 = QtCore.QTimer()
         self.timer2 = QtCore.QTimer()
-        
-        # Setting the Ui        
+
+        # Setting the Ui
         self.SliderFrame.setMaximumHeight(200)
         self.change_mode(self.mode_comboBox.currentIndex())
         self.smoothing_window_type(self.window_comboBox.currentIndex())
 
-        
+
         # Signals
         self.importButton.clicked.connect(lambda: self.upload(self.musicfileName))
         self.mode_comboBox.currentIndexChanged.connect(lambda: self.change_mode(self.mode_comboBox.currentIndex()))
@@ -63,7 +63,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         #     slider.valueChanged.connect(lambda value, sender=slider: self.modifying_amplitudes(self.sliders_list.index(sender), sender.value() * 2 - 10,self.amplitudes, self.output_amplitudes))
 
     # FUNCTIONS
-    
+
     def upload(self, label):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
@@ -75,12 +75,12 @@ class MainApp(QMainWindow, FORM_CLASS):
             # Store file name
             file_name = file_path.split('/')[-1]
             label.setText(file_name)
-            
+
             # Open the .wav file for reading
             with wave.open(file_path, 'rb') as audio_file:
                 # Get the audio file's parameters
                 num_frames = audio_file.getnframes()
-                
+
                 # Read audio data as bytes
                 raw_audio_data = audio_file.readframes(num_frames)
 
@@ -126,12 +126,12 @@ class MainApp(QMainWindow, FORM_CLASS):
                 indicators[i].setText(f"{slider.value()*2-10}")
 
 
-    
+
     def smoothing_window_type(self, index):
         window = self.window_map[index]
-        
+
         self.window_sliders, self.window_indicators = f.create_sliders(window.num_sliders, window.labels, self.WindowFrame, 1)
-        
+
         # Refresh Sliders
         self.sliders_refresh(self.window_sliders, self.window_indicators)
 
@@ -139,23 +139,32 @@ class MainApp(QMainWindow, FORM_CLASS):
         for slider in self.sliders_list:
             slider.valueChanged.connect(lambda value, slider=slider: self.modifying_amplitudes(self.sliders_list.index(slider),slider.value() * 2 - 10, self.amplitudes,self.output_amplitudes))
 
-    def modifying_amplitudes(self,freq_component_index, gain,Input_amplitudes,Output_amplitudes):
-        #Freq Ranges Mapping
-        Animals_mode={0:[100,500],1:[500,2000],2:[200,8000],3:[2000,5000]}
-        Music_mode={0:[30,150],1:[349,1400],2:[262,2500],3:[27.5,4180]}
-        ECG_mode={0:[1,5],1:[2,10],2:[10,20]}
-        default_mode = {key: key + 1 for key in range(10)}
-        if self.mode_comboBox.currentIndex() == 0:
-            Output_amplitudes[default_mode[freq_component_index]] = gain * Input_amplitudes[default_mode[freq_component_index]]
-        elif self.mode_comboBox.currentIndex() == 1:
-            Output_amplitudes[ECG_mode[freq_component_index][0]:ECG_mode[freq_component_index][1]] = gain * Input_amplitudes[ECG_mode[freq_component_index][0]:ECG_mode[freq_component_index][1]]
-        elif self.mode_comboBox.currentIndex() == 2:
-            Output_amplitudes[Animals_mode[freq_component_index][0]:Animals_mode[freq_component_index][1]] = gain * Input_amplitudes[Animals_mode[freq_component_index][0]:Animals_mode[freq_component_index][1]]
-        elif self.mode_comboBox.currentIndex() == 3:
-            Output_amplitudes[Music_mode[freq_component_index][0]:Music_mode[freq_component_index][1]] = gain * Input_amplitudes[Music_mode[freq_component_index][0]:Music_mode[freq_component_index][1]]
-        self.InputGraph.clear()
-        self.InputGraph.plot(self.frequency_comp,Output_amplitudes)
 
+    def modifying_amplitudes(self, freq_component_index, gain, input_amplitudes, output_amplitudes):
+        # Frequency Ranges Mapping
+        animals_mode = {0: [100, 500], 1: [200, 8000], 2: [500, 2000], 3: [2000, 5000]}
+        music_mode = {0: [30, 150], 1: [349, 1400], 2: [262, 2500], 3: [27.5, 4180]}
+        ecg_mode = {0: [1, 5], 1: [2, 10], 2: [10, 20]}
+        default_mode = {key: key + 1 for key in range(10)}
+
+        mode_index = self.mode_comboBox.currentIndex()
+
+        if mode_index == 0:
+            output_amplitudes[default_mode[freq_component_index]] = gain * input_amplitudes[
+                default_mode[freq_component_index]]
+        elif mode_index == 1:
+            start, end = ecg_mode[freq_component_index]
+            output_amplitudes[start:end] = gain * input_amplitudes[start:end]
+        elif mode_index == 2:
+            start, end = animals_mode[freq_component_index]
+            output_amplitudes[start:end] = gain * input_amplitudes[start:end]
+        elif mode_index == 3:
+            start, end = music_mode[freq_component_index]
+            output_amplitudes[start:end] = gain * input_amplitudes[start:end]
+
+        self.InputGraph.clear()
+        self.InputGraph.plot(self.frequency_comp, output_amplitudes)
+      #  f.apply_smoothing_window(output_amplitudes)
 
         
         
