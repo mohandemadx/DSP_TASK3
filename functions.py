@@ -118,6 +118,7 @@ def compute_fourier_transform(signal,Ts):
 #def apply_smoothing_window(output_amplitudes):
 
 #def update_plotting(output_amplitudes):
+
 def plot_waveform(data, sample_rate, plot_widget):
     time = np.arange(0, len(data)) / sample_rate
     plot_widget.plot(time, data, pen='b')
