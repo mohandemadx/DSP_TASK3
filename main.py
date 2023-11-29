@@ -162,9 +162,8 @@ class MainApp(QMainWindow, FORM_CLASS):
             start, end = music_mode[freq_component_index]
             output_amplitudes[start:end] = gain * input_amplitudes[start:end]
 
-        self.InputGraph.clear()
-        self.InputGraph.plot(self.frequency_comp, output_amplitudes)
-      #  f.apply_smoothing_window(output_amplitudes)
+        # f.apply_smoothing_window(output_amplitudes)
+        # f.update_plotting(output_amplitudes)
 
         
         
