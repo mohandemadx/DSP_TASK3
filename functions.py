@@ -75,9 +75,9 @@ def play_n_pause(button, timer):
     else:
         icon = QIcon("icons/pause.png")  # Use the resource path
         button.setIcon(icon)
-        timer.start(10)
+        timer.start(1000)
 
-def speed(slider_value, speed_label):
+def speed(slider_value, speed_label, timer):
     map_speed_factor = {
         1: 0.2,
         2: 0.5,
@@ -87,9 +87,15 @@ def speed(slider_value, speed_label):
     }
     speed_factor = map_speed_factor[slider_value]
     speed_label.setText(f'x {speed_factor}')
-    time_interval = 1000 * speed_factor  # ms
-    return time_interval
+    time_interval = int(1000 / speed_factor ) # ms
+    
+    update_speed(timer, time_interval)
+    
 
+def update_speed(timer, time_interval):
+    timer.stop()
+    timer.start(time_interval)
+    
 def synthesize_signal():
     fs = 1000
     T = 1 / fs
@@ -152,21 +158,24 @@ def play_sound(sound_data, sample_rate, button, timer):
     pass
 
 
-def plot_specto(data, sample_rate, frame):
-    canvas = FigureCanvas(plt.Figure())
+def plot_specto(data, sample_rate, frame, checkbox):
     clear(frame)
-    layout = frame.layout()
-    layout.addWidget(canvas)
+    if checkbox.isChecked():
+        canvas = FigureCanvas(plt.Figure())
+        layout = frame.layout()
+        layout.addWidget(canvas)
 
-    # Plot the spectrogram
-    plt.figure()
-    plt.specgram(data, Fs=sample_rate, cmap='viridis', aspect='auto')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Frequency (Hz)')
-    plt.title('Spectrogram')
-    canvas.figure.clear()
-    canvas.figure = plt.gcf()
-    canvas.draw()
+        # Plot the spectrogram
+        plt.figure()
+        plt.specgram(data, Fs=sample_rate, cmap='viridis', aspect='auto')
+        plt.xlabel('Time (s)')
+        plt.ylabel('Frequency (Hz)')
+        plt.title('Spectrogram')
+        canvas.figure.clear()
+        canvas.figure = plt.gcf()
+        canvas.draw()
+    else:
+        return
 
 
         

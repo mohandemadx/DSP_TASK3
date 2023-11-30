@@ -87,12 +87,6 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.InputGraph.addItem(self.vertical_line1)
         self.OutputGraph.addItem(self.vertical_line2)
 
-        x_data = [0, 0]
-        y_data = [-30000, 30000]  # You can adjust the y values based on your plot's range
-        
-        self.vertical_line1.setData(x=x_data, y=y_data)
-        self.vertical_line2.setData(x=x_data, y=y_data)
-
         # Signals
         self.importButton.clicked.connect(lambda: self.upload(self.musicfileName))
         self.mode_comboBox.currentIndexChanged.connect(lambda: self.change_mode(self.mode_comboBox.currentIndex()))
@@ -101,8 +95,10 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.playallButton.clicked.connect(lambda: f.play_n_pause(self.playallButton, self.timer))
         self.playButton1.clicked.connect(lambda: f.play_n_pause(self.playButton1, self.timer1))
         self.playButton2.clicked.connect(lambda: f.play_n_pause(self.playButton2, self.timer2))
-        self.speedSlider.valueChanged.connect(lambda: f.speed(self.speedSlider.value(), self.speedLabel))
-
+        self.speedSlider.valueChanged.connect(lambda: f.speed(self.speedSlider.value(), self.speedLabel, self.timer))
+        self.resetButton.clicked.connect(self.reset)
+        self.showCheckBox.stateChanged.connect(lambda: f.plot_specto(self.audio_data, self.sample_rate, self.spectoframe1, self.showCheckBox))
+        
     # FUNCTIONS
 
     def upload(self, label):
@@ -133,15 +129,26 @@ class MainApp(QMainWindow, FORM_CLASS):
 
 
                 f.plot_waveform(self.audio_data, self.sample_rate, self.InputGraph)
-                f.plot_specto(self.audio_data, self.sample_rate, self.spectoframe1)
-                f.plot_waveform(self.audio_data, self.sample_rate, self.OutputGraph)
-                f.plot_specto(self.audio_data, self.sample_rate, self.spectoframe2)
+                if self.showCheckBox.isChecked():
+                    f.plot_specto(self.audio_data, self.sample_rate, self.spectoframe1)
 
 
                 # Update the signal
-                self.update_signal()
+                self.update_signal(self.mode_comboBox.currentIndex())
                 f.update_plotting(self.frequency_comp, self.output_amplitudes, self.freqGraph)
     
+    def reset(self):
+        if self.timer.isActive():
+            f.play_n_pause(self.playallButton, self.timer)
+        
+        self.line_position = 0
+        # Set the data for the vertical line
+        x_data = [self.line_position, self.line_position]
+        y_data = [-30000, 30000]  # You can adjust the y values based on your plot's range
+
+        self.vertical_line1.setData(x=x_data, y=y_data)
+        self.vertical_line2.setData(x=x_data, y=y_data)
+        
     def time_tracker(self, vertical_line):
         self.line_position += 0.1
 
