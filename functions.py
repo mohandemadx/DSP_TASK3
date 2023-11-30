@@ -4,6 +4,7 @@ from PyQt5.QtCore import Qt
 import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
+from scipy.signal import *
 
 
 # FUNCTIONS
@@ -120,8 +121,8 @@ def synthesize_signal():
 def compute_fourier_transform(signal, Ts):
     fourier_transform = np.fft.rfft(signal)
     frequencies_fft = np.fft.rfftfreq(len(signal), Ts)
-    amplitudes = np.abs(fourier_transform) / (len(signal) / 2)
-    phases = np.angle(fourier_transform) / (len(signal) / 2)
+    amplitudes = np.abs(fourier_transform)/(len(signal) /2)
+    phases = np.angle(fourier_transform)
     return amplitudes, frequencies_fft, phases
 
 
@@ -134,12 +135,53 @@ def update_plotting(freq_comp,output_amplitudes,plot_widget):
     plot_widget.plot(freq_comp, output_amplitudes,pen="b")
     plot_widget.setLabel('left', 'Amplitude')
     plot_widget.setLabel('bottom', 'Frequency (Hz)')
-    plot_widget.showGrid(x=True, y=True)
+
+
+def get_smoothing_window(window_index,plot_widget,output_amp,freq_comp,parameter):
+    #get_smoothing_window_parameters(window_index,plot_widget,output_amp,freq_comp,parameter)
+    plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,parameter)
+    #return window_index
+
+
+def plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,parameter):
+    N = len(output_amp)
+    window_length=parameter*N
+    std=parameter
+    scale=max(output_amp)
+    n = np.arange(0, window_length)
+
+    # Hamming
+    if window_index==0:
+       window =scale*( 0.54 - 0.46 * np.cos(2 * np.pi * n / (window_length- 1)))
+
+    # Hanning
+    elif window_index==1:
+        window =scale*( 0.5 * (1 - np.cos(2 * np.pi * n / (window_length - 1))))
+
+    #Gaussian
+    elif window_index==2:
+        x = np.linspace(-1, 1, N)
+        window= np.exp(-(x / (std / 2)) ** 2)
+
+    #Rectangular
+    elif window_index==3:
+         window=scale*np.ones(int(window_length))
+    plot_widget.clear()
+    update_plotting(freq_comp,output_amp,plot_widget)
+    plot_widget.plot(window,pen='r',fillLevel=0, fillBrush=(255, 0, 0, 100) )
+def get_smoothing_window_parameters(value,window_index,plot_widget,output_amp,freq_comp):
+    new_value = (value / 10) * 0.9 + 0.1
+    plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,new_value)
+
+
+
 
 
 
 def compute_inverse_fourier_transform():
-    pass
+    new_fft_result = new_amplitudes * np.exp(1j * phases)
+    inverse_fft = np.fft.irfft(new_fft_result)
+    return inverse_fft
 
 
 def plot_waveform(data, sample_rate, plot_widget):

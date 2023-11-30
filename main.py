@@ -26,9 +26,9 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.setWindowTitle("Signal Equalizer")
 
         # Objects
-        self.hamming = c.WindowType(['α'], 1)
-        self.hanning = c.WindowType(['α'], 1)
-        self.gaussian = c.WindowType(['Mean', 'Std'], 2)
+        self.hamming = c.WindowType(['N'], 1)
+        self.hanning = c.WindowType(['N'], 1)
+        self.gaussian = c.WindowType(['N', 'Std'], 2)
         self.rectangle = c.WindowType(['constant'], 1)
 
         r = namedtuple('Range', ['min', 'max'])
@@ -98,6 +98,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.speedSlider.valueChanged.connect(lambda: f.speed(self.speedSlider.value(), self.speedLabel, self.timer))
         self.resetButton.clicked.connect(self.reset)
         self.showCheckBox.stateChanged.connect(lambda: f.plot_specto(self.audio_data, self.sample_rate, self.spectoframe1, self.showCheckBox))
+        self.window_comboBox.currentIndexChanged.connect(lambda:f.get_smoothing_window(self.window_comboBox.currentIndex(),self.freqGraph,self.output_amplitudes,self.frequency_comp,1))
         
     # FUNCTIONS
 
@@ -183,7 +184,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         if sliders:
             for slider in sliders:
                slider.valueChanged.connect(lambda: self.update_indicators(sliders, indicators))
-               slider.valueChanged.connect(lambda: self.modifying_amplitudes(self.sliders_list.index(slider), slider.value() * 2 - 10, self.amplitudes, self.output_amplitudes))
+               # slider.valueChanged.connect(lambda: self.modifying_amplitudes(self.sliders_list.index(slider), slider.value() * 2 - 10, self.amplitudes, self.output_amplitudes))
 
 
     def update_indicators(self, sliders, indicators):
@@ -199,17 +200,15 @@ class MainApp(QMainWindow, FORM_CLASS):
 
         # Refresh Sliders
         self.sliders_refresh(self.window_sliders, self.window_indicators)
+        for slider in self.window_sliders: slider.valueChanged.connect(lambda:f.get_smoothing_window_parameters(slider.value(),self.window_comboBox.currentIndex(),self.freqGraph,self.output_amplitudes,self.frequency_comp))
+
 
     def connect_slider_signals(self):
-        for slider in self.sliders_list:
-            slider.valueChanged.connect(
-                lambda value, slider=slider: self.modifying_amplitudes(self.sliders_list.index(slider),
-                                                                       slider.value() * 2 - 10, self.amplitudes,
-                                                                       self.output_amplitudes))
+        for slider in self.sliders_list:slider.valueChanged.connect(lambda value, slider=slider: self.modifying_amplitudes(self.sliders_list.index(slider),slider.value() * 2 - 10, self.amplitudes,self.output_amplitudes))
 
     def modifying_amplitudes(self, freq_component_index, gain, input_amplitudes, output_amplitudes):
         # Frequency Ranges Mapping
-        animals_mode = {0: [1000, 7000], 1: [7000,44100], 2: [500, 2000], 3: [2000, 5000]}
+        animals_mode = {0: [1000, 7000], 1: [7000,20000], 2: [500, 2000], 3: [2000, 5000]}
         music_mode = {0: [30, 150], 1: [349, 1400], 2: [262, 2500], 3: [27.5, 4180]}
         ecg_mode = {0: [1, 5], 1: [2, 10], 2: [10, 20]}
         default_mode = {key: key + 1 for key in range(10)}
@@ -228,8 +227,9 @@ class MainApp(QMainWindow, FORM_CLASS):
         elif mode_index == 3:
             start, end = music_mode[freq_component_index]
             output_amplitudes[start:end] = gain * input_amplitudes[start:end]
-                #f.apply_smoothing_window(output_amplitudes,f.get_smoothing_window_parameters)
-        f.update_plotting(self.frequency_comp,output_amplitudes,self.freqGraph)
+       # f.apply_smoothing_window(output_amplitudes,f.get_smoothing_window_parameters,f.get_smoothing_window)
+       #  f.update_plotting(self.frequency_comp,output_amplitudes,self.freqGraph)
+        f.plot_smoothing_window(0,self.freqGraph,output_amplitudes,self.frequency_comp,1)
 
 
 def main():
