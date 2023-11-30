@@ -60,8 +60,8 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.timer = QtCore.QTimer()
         self.timer1 = QtCore.QTimer()
         self.timer2 = QtCore.QTimer()
-        self.timer.timeout.connect(lambda: f.time_tracker(self.vertical_line1, self.line_position))
-        self.timer.timeout.connect(lambda: f.time_tracker(self.vertical_line2, self.line_position))
+        self.timer.timeout.connect(lambda: self.time_tracker(self.vertical_line1))
+        self.timer.timeout.connect(lambda: self.time_tracker(self.vertical_line2))
         # self.timer1.timeout.connect(self.timer_timeout)
         # self.timer2.timeout.connect(self.timer_timeout)
         
@@ -85,8 +85,8 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.OutputGraph.addItem(self.vertical_line2)
         
         x_data = [0, 0]
-        y_data = [-20000, 20000]  # You can adjust the y values based on your plot's range
-
+        y_data = [-30000, 30000]  # You can adjust the y values based on your plot's range
+        
         self.vertical_line1.setData(x=x_data, y=y_data)
         self.vertical_line2.setData(x=x_data, y=y_data)
 
@@ -137,15 +137,23 @@ class MainApp(QMainWindow, FORM_CLASS):
                 # Update the signal
                 self.update_signal()
 
+    def time_tracker(self, vertical_line):
+        self.line_position += 0.1
+
+        # Set the data for the vertical line
+        x_data = [self.line_position, self.line_position]
+        y_data = [-30000, 30000]  # You can adjust the y values based on your plot's range
+
+        vertical_line.setData(x=x_data, y=y_data)
 
     def change_mode(self, index):
         mode = self.mapping_mode[index]
         self.sliders_list, indicators_list = f.create_sliders(mode.num_sliders, mode.labels, self.SliderFrame, 2)
         self.sliders_refresh(self.sliders_list, indicators_list)
-        self.update_signal()
+        self.update_signal(index)
 
-    def update_signal(self):
-        if self.mode_comboBox.currentIndex() == 0:
+    def update_signal(self, index):
+        if index == 0:
             self.signal = f.synthesize_signal()
             Ts = 1000
 
@@ -154,13 +162,15 @@ class MainApp(QMainWindow, FORM_CLASS):
             Ts = 1/44100
             
         if len(self.signal):
-                    self.amplitudes, self.frequency_comp ,self.phases= f.compute_fourier_transform(self.signal,Ts)
-                    self.output_amplitudes = self.amplitudes.copy()
+            self.amplitudes, self.frequency_comp ,self.phases = f.compute_fourier_transform(self.signal, Ts)
+            self.output_amplitudes = self.amplitudes.copy()
 
     def sliders_refresh(self, sliders, indicators):
         if sliders:
             for slider in sliders:
-               slider.valueChanged.connect(lambda:self.update_indicators( sliders, indicators))
+               slider.valueChanged.connect(lambda: self.update_indicators(sliders, indicators))
+               slider.valueChanged.connect(lambda: self.modifying_amplitudes(self.sliders_list.index(slider), slider.value() * 2 - 10, self.amplitudes, self.output_amplitudes))
+
 
     def update_indicators(self, sliders, indicators):
         if sliders:
@@ -174,10 +184,6 @@ class MainApp(QMainWindow, FORM_CLASS):
 
         # Refresh Sliders
         self.sliders_refresh(self.window_sliders, self.window_indicators)
-
-    def connect_slider_signals(self):
-        for slider in self.sliders_list:
-            slider.valueChanged.connect(lambda value, slider=slider: self.modifying_amplitudes(self.sliders_list.index(slider),slider.value() * 2 - 10, self.amplitudes,self.output_amplitudes))
 
     def modifying_amplitudes(self, freq_component_index, gain, input_amplitudes, output_amplitudes):
         # Frequency Ranges Mapping
@@ -200,7 +206,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         elif mode_index == 3:
             start, end = music_mode[freq_component_index]
             output_amplitudes[start:end] = gain * input_amplitudes[start:end]
-
+        
         # f.apply_smoothing_window(output_amplitudes)
         # f.update_plotting(output_amplitudes)
 

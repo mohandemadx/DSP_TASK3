@@ -5,7 +5,7 @@ import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
-
+line_position = 0
 
 # FUNCTIONS
 def create_sliders(sliders_number, labels_list, frame, alignment):
@@ -74,7 +74,7 @@ def play_n_pause(button, timer):
     else:
         icon = QIcon("icons/pause.png")  # Use the resource path
         button.setIcon(icon)
-        timer.start(10)
+        timer.start(1000)
 
 def speed(slider_value, speed_label): 
     map_speed_factor = {
@@ -115,7 +115,7 @@ def compute_fourier_transform(signal,Ts):
     frequencies_fft = np.fft.rfftfreq(len(signal), Ts)
     amplitudes = np.abs(fourier_transform)/(len(signal)/2)
     phases= np.angle(fourier_transform)/(len(signal)/2)
-    return amplitudes, frequencies_fft,phases
+    return amplitudes, frequencies_fft, phases
 
 def apply_smoothing_window(output_amplitudes):
     pass
@@ -157,12 +157,6 @@ def plot_specto(data, sample_rate, frame):
     canvas.figure = plt.gcf()
     canvas.draw()
 
-def time_tracker(vertical_line, line_position):
-    line_position += 0.1
 
-    # Set the data for the vertical line
-    x_data = [line_position, line_position]
-    y_data = [-20000, 20000]  # You can adjust the y values based on your plot's range
-
-    vertical_line.setData(x=x_data, y=y_data)
+        
     
