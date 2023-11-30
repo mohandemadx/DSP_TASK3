@@ -129,7 +129,6 @@ class MainApp(QMainWindow, FORM_CLASS):
                 self.audio_data = np.frombuffer(raw_audio_data, dtype=np.int16)
 
                 sample_width = audio_file.getsampwidth()
-                sample_rate = audio_file.getframerate()
                 self.sample_rate = audio_file.getframerate()
 
 
@@ -142,6 +141,7 @@ class MainApp(QMainWindow, FORM_CLASS):
                 # Update the signal
                 self.update_signal()
                 f.update_plotting(self.frequency_comp, self.output_amplitudes, self.freqGraph)
+    
     def time_tracker(self, vertical_line):
         self.line_position += 0.1
 

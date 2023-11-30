@@ -90,7 +90,6 @@ def speed(slider_value, speed_label):
     time_interval = 1000 * speed_factor  # ms
     return time_interval
 
-
 def synthesize_signal():
     fs = 1000
     T = 1 / fs
@@ -169,9 +168,6 @@ def plot_specto(data, sample_rate, frame):
     canvas.figure = plt.gcf()
     canvas.draw()
 
-
-def time_tracker(vertical_line, line_position):
-    line_position += 0.1
 
         
     
