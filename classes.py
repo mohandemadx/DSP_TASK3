@@ -1,6 +1,3 @@
-from PyQt5.QtCore import QThread, pyqtSignal
-
-
 class WindowType:
     def __init__(self, labels, num_sliders):
         self.labels = labels
