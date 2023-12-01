@@ -39,7 +39,8 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.musical = c.Mode(['Drums', 'Trumpet', 'Flute', 'Piano'], [1 for _ in range(4)], 4)
 
         # Variables
-        self.line_position = 0
+        
+        self.index = 0
         self.audio_data = []
         self.sample_rate=44100
         self.sliders_list = []
@@ -63,8 +64,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.timer = QtCore.QTimer()
         self.timer1 = QtCore.QTimer()
         self.timer2 = QtCore.QTimer()
-        self.timer.timeout.connect(lambda: self.time_tracker(self.vertical_line1))
-        self.timer.timeout.connect(lambda: self.time_tracker(self.vertical_line2))
+        self.timer.timeout.connect(self.update_waveform)
         # self.timer1.timeout.connect(self.timer_timeout)
         # self.timer2.timeout.connect(self.timer_timeout)
 
@@ -78,14 +78,8 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.smoothing_window_type(self.window_comboBox.currentIndex())
         self.InputGraph.setBackground('w')
         self.OutputGraph.setBackground('w')
-        self.SpectoGraph1.setBackground('w')
-        self.SpectoGraph2.setBackground('w')
         self.freqGraph.setBackground('w')
 
-        self.vertical_line1 = pg.PlotCurveItem(pen='r')
-        self.vertical_line2 = pg.PlotCurveItem(pen='r')
-        self.InputGraph.addItem(self.vertical_line1)
-        self.OutputGraph.addItem(self.vertical_line2)
 
         # Signals
         self.importButton.clicked.connect(lambda: self.upload(self.musicfileName))
@@ -127,9 +121,16 @@ class MainApp(QMainWindow, FORM_CLASS):
 
                 sample_width = audio_file.getsampwidth()
                 self.sample_rate = audio_file.getframerate()
+                self.time = np.arange(0, len(self.audio_data)) / self.sample_rate
 
-
-                f.plot_waveform(self.audio_data, self.sample_rate, self.InputGraph)
+                # Enabling the UI
+                self.playallButton.setEnabled(True)
+                self.resetButton.setEnabled(True)
+                self.zoomOutButton.setEnabled(True)
+                self.zoomInButton.setEnabled(True)
+                self.speedSlider.setEnabled(True)
+                self.showCheckBox.setEnabled(True)
+                
                 if self.showCheckBox.isChecked():
                     f.plot_specto(self.audio_data, self.sample_rate, self.spectoframe1)
 
@@ -138,26 +139,30 @@ class MainApp(QMainWindow, FORM_CLASS):
                 self.update_signal(self.mode_comboBox.currentIndex())
                 f.update_plotting(self.frequency_comp, self.output_amplitudes, self.freqGraph)
     
+    
     def reset(self):
         if self.timer.isActive():
             f.play_n_pause(self.playallButton, self.timer)
+            self.InputGraph.clear()
+            self.index = 0
         
-        self.line_position = 0
-        # Set the data for the vertical line
-        x_data = [self.line_position, self.line_position]
-        y_data = [-30000, 30000]  # You can adjust the y values based on your plot's range
-
-        self.vertical_line1.setData(x=x_data, y=y_data)
-        self.vertical_line2.setData(x=x_data, y=y_data)
+    def update_waveform(self):
+        x_min = self.index
+        x_max = min(len(self.time), self.index + 1000)
         
-    def time_tracker(self, vertical_line):
-        self.line_position += 0.1
+        # self.InputGraph.setXRange(x_min, x_max)
+        
+        plot_item = self.InputGraph.plot(pen='b')
+        plot_item.setData(self.time[x_min:x_max], self.audio_data[x_min:x_max])
 
-        # Set the data for the vertical line
-        x_data = [self.line_position, self.line_position]
-        y_data = [-30000, 30000]  # You can adjust the y values based on your plot's range
+        if self.index >= len(self.time):
+            self.index = 0    
+        self.index += 1
+        
+           
 
-        vertical_line.setData(x=x_data, y=y_data)
+
+                
 
     def change_mode(self, index):
         mode = self.mapping_mode[index]

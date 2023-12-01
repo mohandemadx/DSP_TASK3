@@ -77,7 +77,7 @@ def play_n_pause(button, timer):
     else:
         icon = QIcon("icons/pause.png")  # Use the resource path
         button.setIcon(icon)
-        timer.start(1000)
+        timer.start(100)
 
 def speed(slider_value, speed_label, timer):
     map_speed_factor = {
@@ -93,7 +93,6 @@ def speed(slider_value, speed_label, timer):
     
     update_speed(timer, time_interval)
     
-
 def update_speed(timer, time_interval):
     timer.stop()
     timer.start(time_interval)
@@ -190,14 +189,10 @@ def plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,paramete
     update_plotting(freq_comp,output_amp,plot_widget)
     apply_smoothing_window(output_amp,window_index,parameter)
     plot_widget.plot(window,pen='r',fillLevel=0, fillBrush=(255, 0, 0, 100) )
+
 def get_smoothing_window_parameters(value,window_index,plot_widget,output_amp,freq_comp):
     new_value = (value / 10) * 0.9 + 0.1
     plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,new_value)
-
-
-
-
-
 
 def compute_inverse_fourier_transform():
     new_fft_result = new_amplitudes * np.exp(1j * phases)
@@ -205,17 +200,6 @@ def compute_inverse_fourier_transform():
     return inverse_fft
 
 
-def plot_waveform(data, sample_rate, plot_widget):
-    time = np.arange(0, len(data)) / sample_rate
-    plot_widget.plot(time, data, pen='b')
-    plot_widget.setLabel('left', 'Amplitude')
-    plot_widget.setLabel('bottom', 'Time (s)')
-    plot_widget.showGrid(x=True, y=True)
-
-
-# def update_sound_slider(data, sample_rate, slider):
-#     time = np.arange(0, len(data)) / sample_rate
-#     slider.setRange(time)
 
 def play_sound(sound_data, sample_rate, button, timer):
     pass
