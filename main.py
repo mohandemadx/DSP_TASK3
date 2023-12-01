@@ -12,7 +12,7 @@ import numpy as np
 from PyQt5 import QtCore
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 import pyqtgraph as pg
-
+import scipy.signal
 FORM_CLASS, _ = loadUiType(path.join(path.dirname(__file__), "design.ui"))
 
 
@@ -28,7 +28,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         # Objects
         self.hamming = c.WindowType(['N'], 1)
         self.hanning = c.WindowType(['N'], 1)
-        self.gaussian = c.WindowType(['N', 'Std'], 2)
+        self.gaussian = c.WindowType(['Std'], 1)
         self.rectangle = c.WindowType(['constant'], 1)
 
         r = namedtuple('Range', ['min', 'max'])

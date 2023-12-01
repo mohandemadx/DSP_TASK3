@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import *
 
 
+
 # FUNCTIONS
 def create_sliders(sliders_number, labels_list, frame, alignment):
     clear(frame)
@@ -125,9 +126,28 @@ def compute_fourier_transform(signal, Ts):
     phases = np.angle(fourier_transform)
     return amplitudes, frequencies_fft, phases
 
+def apply_smoothing_window(output_amplitudes, index, parameter):
+        window_length = parameter*len(output_amplitudes)
+        if index == 0:  # Hamming
+            alpha = 0.54
+            n = np.arange(window_length)
+            smoothing_window = alpha - (1 - alpha) * np.cos(2 * np.pi * n / (window_length - 1))
+            return output_amplitudes[0:int(window_length)+1]* smoothing_window
+        elif index == 1:  # Hanning
+            n = np.arange(window_length)
+            smoothing_window = 0.5 * (1 - np.cos(2 * np.pi * n / (window_length - 1)))
+            return output_amplitudes[0:int(window_length)+1]* smoothing_window
+        elif index == 2:  # gaussian
+            # sigma = ?
+            x = np.linspace(-1, 1, int(window_length))
+            smoothing_window = np.exp(-(x ** 2) / (2 * parameter ** 2))
+            return output_amplitudes[0:int(window_length)]* smoothing_window
 
-def apply_smoothing_window(output_amplitudes):
-    pass
+        elif index == 3:  # rectangle
+            smoothing_window = np.ones(int(window_length))
+            # smoothing_window = np.ones(window_length) * scaling_factor  # (scaling factor law msh ayzaha 1)
+            return output_amplitudes[0:int(window_length)] * smoothing_window
+
 
 
 def update_plotting(freq_comp,output_amplitudes,plot_widget):
@@ -138,9 +158,8 @@ def update_plotting(freq_comp,output_amplitudes,plot_widget):
 
 
 def get_smoothing_window(window_index,plot_widget,output_amp,freq_comp,parameter):
-    #get_smoothing_window_parameters(window_index,plot_widget,output_amp,freq_comp,parameter)
     plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,parameter)
-    #return window_index
+
 
 
 def plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,parameter):
@@ -161,13 +180,15 @@ def plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,paramete
     #Gaussian
     elif window_index==2:
         x = np.linspace(-1, 1, N)
-        window= np.exp(-(x / (std / 2)) ** 2)
+        window=scale*( np.exp(-(x ** 2) / (2 * parameter ** 2)))
+
 
     #Rectangular
     elif window_index==3:
          window=scale*np.ones(int(window_length))
     plot_widget.clear()
     update_plotting(freq_comp,output_amp,plot_widget)
+    apply_smoothing_window(output_amp,window_index,parameter)
     plot_widget.plot(window,pen='r',fillLevel=0, fillBrush=(255, 0, 0, 100) )
 def get_smoothing_window_parameters(value,window_index,plot_widget,output_amp,freq_comp):
     new_value = (value / 10) * 0.9 + 0.1
