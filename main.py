@@ -11,8 +11,8 @@ import classes as c
 import numpy as np
 from PyQt5 import QtCore
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
-import pyqtgraph as pg
-import scipy.signal
+from PyQt5.QtCore import QUrl
+
 FORM_CLASS, _ = loadUiType(path.join(path.dirname(__file__), "design.ui"))
 
 
@@ -24,7 +24,7 @@ class MainApp(QMainWindow, FORM_CLASS):
 
         self.setupUi(self)
         self.setWindowTitle("Signal Equalizer")
-
+        
         # Objects
         self.hamming = c.WindowType(['N'], 1)
         self.hanning = c.WindowType(['N'], 1)
@@ -86,9 +86,9 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.mode_comboBox.currentIndexChanged.connect(lambda: self.change_mode(self.mode_comboBox.currentIndex()))
         self.window_comboBox.currentIndexChanged.connect(
             lambda: self.smoothing_window_type(self.window_comboBox.currentIndex()))
-        self.playallButton.clicked.connect(lambda: f.play_n_pause(self.playallButton, self.timer))
-        self.playButton1.clicked.connect(lambda: f.play_n_pause(self.playButton1, self.timer1))
-        self.playButton2.clicked.connect(lambda: f.play_n_pause(self.playButton2, self.timer2))
+        self.playallButton.clicked.connect(lambda: f.play_n_pause(self.playallButton, self.timer, False, _))
+        self.playButton1.clicked.connect(lambda: f.play_n_pause(self.playButton1, self.timer1, True, self.media_playerIN))
+        self.playButton2.clicked.connect(lambda: f.play_n_pause(self.playButton2, self.timer2, True, self.media_playerOUT))
         self.speedSlider.valueChanged.connect(lambda: f.speed(self.speedSlider.value(), self.speedLabel, self.timer))
         self.resetButton.clicked.connect(self.reset)
         self.showCheckBox.stateChanged.connect(lambda: f.plot_specto(self.audio_data, self.sample_rate, self.spectoframe1, self.showCheckBox))
@@ -107,12 +107,14 @@ class MainApp(QMainWindow, FORM_CLASS):
             # Store file name
             file_name = file_path.split('/')[-1]
             label.setText(file_name)
+            if self.media_playerIN.state() == QMediaPlayer.StoppedState:
+                    self.media_playerIN.setMedia(QMediaContent(QUrl.fromLocalFile(file_path)))
 
             # Open the .wav file for reading
             with wave.open(file_path, 'rb') as audio_file:
                 # Get the audio file's parameters
                 num_frames = audio_file.getnframes()
-
+                
                 # Read audio data as bytes
                 raw_audio_data = audio_file.readframes(num_frames)
 
@@ -145,10 +147,13 @@ class MainApp(QMainWindow, FORM_CLASS):
             f.play_n_pause(self.playallButton, self.timer)
             self.InputGraph.clear()
             self.index = 0
+        else:
+            self.InputGraph.clear()
+            self.index = 0
         
     def update_waveform(self):
         x_min = self.index
-        x_max = min(len(self.time), self.index + 1000)
+        x_max = min(len(self.time), self.index + 10)
         
         # self.InputGraph.setXRange(x_min, x_max)
         
@@ -191,7 +196,6 @@ class MainApp(QMainWindow, FORM_CLASS):
                slider.valueChanged.connect(lambda: self.update_indicators(sliders, indicators))
                # slider.valueChanged.connect(lambda: self.modifying_amplitudes(self.sliders_list.index(slider), slider.value() * 2 - 10, self.amplitudes, self.output_amplitudes))
 
-
     def update_indicators(self, sliders, indicators):
         if sliders:
             for i, slider in enumerate(sliders):
@@ -206,7 +210,6 @@ class MainApp(QMainWindow, FORM_CLASS):
         # Refresh Sliders
         self.sliders_refresh(self.window_sliders, self.window_indicators)
         for slider in self.window_sliders: slider.valueChanged.connect(lambda:f.get_smoothing_window_parameters(slider.value(),self.window_comboBox.currentIndex(),self.freqGraph,self.output_amplitudes,self.frequency_comp))
-
 
     def connect_slider_signals(self):
         for slider in self.sliders_list:slider.valueChanged.connect(lambda value, slider=slider: self.modifying_amplitudes(self.sliders_list.index(slider),slider.value() * 2 - 10, self.amplitudes,self.output_amplitudes))

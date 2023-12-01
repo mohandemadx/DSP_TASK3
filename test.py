@@ -1,10 +1,9 @@
 import sys
-import numpy as np
-import pyqtgraph as pg
-from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
+from PyQt5.QtCore import QUrl
 
-class MovingVerticalLineWidget(QWidget):
+class AudioPlayerWidget(QWidget):
     def __init__(self):
         super().__init__()
 
@@ -13,38 +12,47 @@ class MovingVerticalLineWidget(QWidget):
     def init_ui(self):
         layout = QVBoxLayout()
 
-        # Create a pyqtgraph PlotWidget
-        self.plot_widget = pg.PlotWidget(self)
-        layout.addWidget(self.plot_widget)
+        self.player = QMediaPlayer()
 
-        # Create a vertical line item
-        self.vertical_line = pg.InfiniteLine(angle=90, movable=False, pen='r')
-        self.plot_widget.addItem(self.vertical_line)
+        self.play_button = QPushButton('Play', self)
+        self.play_button.clicked.connect(self.play_audio)
+        layout.addWidget(self.play_button)
+
+        self.pause_button = QPushButton('Pause', self)
+        self.pause_button.clicked.connect(self.pause_audio)
+        layout.addWidget(self.pause_button)
+
+        self.file_label = QLabel('No file selected', self)
+        layout.addWidget(self.file_label)
+
+        self.select_file_button = QPushButton('Select File', self)
+        self.select_file_button.clicked.connect(self.select_file)
+        layout.addWidget(self.select_file_button)
 
         self.setLayout(layout)
+        self.setWindowTitle('Audio Player Example')
+        self.setGeometry(100, 100, 300, 200)
 
-        # Set up a QTimer to update the line position
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_line_position)
-        self.timer.start(50)  # Update every 50 milliseconds
+    def play_audio(self):
+        if self.player.state() == QMediaPlayer.StoppedState:
+            self.player.setMedia(QMediaContent(QUrl.fromLocalFile(self.file_path)))
+        self.player.play()
 
-        # Initialize line position
-        self.line_position = 0
+    def pause_audio(self):
+        self.player.pause()
 
-    def update_line_position(self):
-        # Update the line position (you can replace this with your own logic)
-        self.line_position += 0.1
+    def select_file(self):
+        file_dialog = QFileDialog()
+        file_dialog.setNameFilter("WAV files (*.wav)")
+        file_dialog.setDefaultSuffix("wav")
 
-        # Set the new position of the vertical line
-        self.vertical_line.setValue(self.line_position)
+        if file_dialog.exec_():
+            self.file_path = file_dialog.selectedFiles()[0]
+            self.file_label.setText(f'Selected File: {self.file_path}')
 
 def main():
     app = QApplication(sys.argv)
-    window = QMainWindow()
-    moving_line_widget = MovingVerticalLineWidget()
-    window.setCentralWidget(moving_line_widget)
-    window.setGeometry(100, 100, 800, 600)
-    window.setWindowTitle('Moving Vertical Line Example')
+    window = AudioPlayerWidget()
     window.show()
     sys.exit(app.exec_())
 

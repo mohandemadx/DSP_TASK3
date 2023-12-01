@@ -69,15 +69,19 @@ def clear(frame):
                 widget.deleteLater()
 
 
-def play_n_pause(button, timer):
+def play_n_pause(button, timer, sound, player):
     if (timer.isActive()):
         icon = QIcon("icons/play.png")  # Use the resource path
         button.setIcon(icon)
         timer.stop()
+        if sound:
+            pause_audio(player)
     else:
         icon = QIcon("icons/pause.png")  # Use the resource path
         button.setIcon(icon)
         timer.start(100)
+        if sound:
+            play_audio(player)
 
 def speed(slider_value, speed_label, timer):
     map_speed_factor = {
@@ -89,7 +93,7 @@ def speed(slider_value, speed_label, timer):
     }
     speed_factor = map_speed_factor[slider_value]
     speed_label.setText(f'x {speed_factor}')
-    time_interval = int(1000 / speed_factor ) # ms
+    time_interval = int(100 / speed_factor ) # ms
     
     update_speed(timer, time_interval)
     
@@ -200,11 +204,12 @@ def compute_inverse_fourier_transform():
     return inverse_fft
 
 
-
-def play_sound(sound_data, sample_rate, button, timer):
-    pass
-
-
+def play_audio(player):
+    player.play()
+    
+def pause_audio(player):
+    player.pause()
+    
 def plot_specto(data, sample_rate, frame, checkbox):
     clear(frame)
     if checkbox.isChecked():
