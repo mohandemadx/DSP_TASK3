@@ -75,7 +75,8 @@ def play_n_pause(button, timer_input,timer_output, sound, player):
         icon = QIcon("icons/play.png")  # Use the resource path
         button.setIcon(icon)
         timer_input.stop()
-        timer_output.stop()
+        if timer_output:
+            timer_output.stop()
 
         if sound:
             pause_audio(player)
@@ -83,7 +84,8 @@ def play_n_pause(button, timer_input,timer_output, sound, player):
         icon = QIcon("icons/pause.png")  # Use the resource path
         button.setIcon(icon)
         timer_input.start(100)
-        timer_output.start(100)
+        if timer_output:
+            timer_output.start(100)
 
         if sound:
             play_audio(player)
@@ -170,9 +172,6 @@ def freq_domain_plotting(freq_comp,output_amplitudes,plot_widget):
     plot_widget.setLabel('bottom', 'Frequency (Hz)')
 
 
-# def get_smoothing_window(window_index,plot_widget,output_amp,freq_comp,parameter):
-#     plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,parameter)
-#     smooth_and_inverse_transform(i)
 
 
 
@@ -205,9 +204,7 @@ def plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,paramete
     #apply_smoothing_window(output_amp,window_index,parameter)
     plot_widget.plot(window,pen='r',fillLevel=0, fillBrush=(255, 0, 0, 100) )
 
-# def customize_smoothing_window_parameters(value,window_index,plot_widget,output_amp,freq_comp):
-#     new_value = (value / 10) * 0.9 + 0.1
-#     plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,new_value)
+
 
 def compute_inverse_fourier_transform(new_amplitude,freq_comp,phases):
     new_amplitudes=new_amplitude*len(new_amplitude)

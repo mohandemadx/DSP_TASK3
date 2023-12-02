@@ -90,11 +90,12 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.window_comboBox.currentIndexChanged.connect(
             lambda: self.smoothing_window_type(self.window_comboBox.currentIndex()))
         self.playallButton.clicked.connect(lambda: f.play_n_pause(self.playallButton, self.timer_input,self.timer_output, False, _))
-        self.playButton1.clicked.connect(lambda: f.play_n_pause(self.playButton1, self.timer1, True, self.media_playerIN))
-        self.playButton2.clicked.connect(lambda: f.play_n_pause(self.playButton2, self.timer2, True, self.media_playerOUT))
+        self.playButton1.clicked.connect(lambda: f.play_n_pause(self.playButton1, self.timer1, None,True, self.media_playerIN))
+        self.playButton2.clicked.connect(lambda: f.play_n_pause(self.playButton2, self.timer2, None,True, self.media_playerOUT))
         self.speedSlider.valueChanged.connect(lambda: f.speed(self.speedSlider.value(), self.speedLabel, self.timer))
         self.resetButton.clicked.connect(self.reset)
         self.showCheckBox.stateChanged.connect(lambda: f.plot_specto(self.audio_data, self.sample_rate, self.spectoframe1, self.showCheckBox))
+        self.showCheckBox.stateChanged.connect(lambda: f.plot_specto(self.edited_time_domain_signal, self.sample_rate, self.spectoframe2, self.showCheckBox))
         self.window_comboBox.currentIndexChanged.connect(lambda:self.get_smoothing_window(self.window_comboBox.currentIndex(),self.freqGraph,self.output_amplitudes,self.frequency_comp,1))
         
     # FUNCTIONS
@@ -237,8 +238,8 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.smooth_and_inverse_transform(self.window_comboBox.currentIndex(),1,output_amplitudes)
 
     def get_smoothing_window(self,window_index, plot_widget, output_amp, freq_comp, parameter):
-     f.plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,parameter)
-     self.smooth_and_inverse_transform(window_index,parameter,output_amp)
+        f.plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,parameter)
+        self.smooth_and_inverse_transform(window_index,parameter,output_amp)
     def customize_smoothing_window_parameters(self,value,window_index,plot_widget,output_amp,freq_comp):
          new_value = (value / 10) * 0.9 + 0.1
          f.plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,new_value)
@@ -247,10 +248,8 @@ class MainApp(QMainWindow, FORM_CLASS):
     def smooth_and_inverse_transform(self,index,parameter,output_amplitudes):
         smoothed_signal=f.apply_smoothing_window(output_amplitudes,index,parameter)
         self.edited_time_domain_signal=f.compute_inverse_fourier_transform(smoothed_signal,self.frequency_comp,self.phases)
-
-
-        # if self.showCheckBox.isChecked():
-        #     f.plot_specto(edited_time_domain_signal, self.sample_rate, self.spectoframe2)
+        if self.showCheckBox.isChecked():
+            f.plot_specto(self.edited_time_domain_signal, self.sample_rate, self.spectoframe2, self.showCheckBox)
         self.OutputGraph.clear()
         self.timer_output.start(100)
 
