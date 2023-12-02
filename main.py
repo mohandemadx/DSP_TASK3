@@ -42,6 +42,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         
         self.index = 0
         self.audio_data = []
+        self.edited_time_domain_signal=[]
         self.sample_rate=44100
         self.sliders_list = []
         self.indicators_list = []
@@ -61,10 +62,12 @@ class MainApp(QMainWindow, FORM_CLASS):
         }
 
         # Timers
-        self.timer = QtCore.QTimer()
+        self.timer_input = QtCore.QTimer()
+        self.timer_output = QtCore.QTimer()
         self.timer1 = QtCore.QTimer()
         self.timer2 = QtCore.QTimer()
-        self.timer.timeout.connect(self.update_waveform)
+        self.timer_input.timeout.connect(lambda:self.update_waveform(self.audio_data,self.InputGraph))
+        self.timer_output.timeout.connect(lambda:self.update_waveform(self.edited_time_domain_signal,self.OutputGraph))
         # self.timer1.timeout.connect(self.timer_timeout)
         # self.timer2.timeout.connect(self.timer_timeout)
 
@@ -86,13 +89,13 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.mode_comboBox.currentIndexChanged.connect(lambda: self.change_mode(self.mode_comboBox.currentIndex()))
         self.window_comboBox.currentIndexChanged.connect(
             lambda: self.smoothing_window_type(self.window_comboBox.currentIndex()))
-        self.playallButton.clicked.connect(lambda: f.play_n_pause(self.playallButton, self.timer, False, _))
+        self.playallButton.clicked.connect(lambda: f.play_n_pause(self.playallButton, self.timer_input,self.timer_output, False, _))
         self.playButton1.clicked.connect(lambda: f.play_n_pause(self.playButton1, self.timer1, True, self.media_playerIN))
         self.playButton2.clicked.connect(lambda: f.play_n_pause(self.playButton2, self.timer2, True, self.media_playerOUT))
         self.speedSlider.valueChanged.connect(lambda: f.speed(self.speedSlider.value(), self.speedLabel, self.timer))
         self.resetButton.clicked.connect(self.reset)
         self.showCheckBox.stateChanged.connect(lambda: f.plot_specto(self.audio_data, self.sample_rate, self.spectoframe1, self.showCheckBox))
-        self.window_comboBox.currentIndexChanged.connect(lambda:f.get_smoothing_window(self.window_comboBox.currentIndex(),self.freqGraph,self.output_amplitudes,self.frequency_comp,1))
+        self.window_comboBox.currentIndexChanged.connect(lambda:self.get_smoothing_window(self.window_comboBox.currentIndex(),self.freqGraph,self.output_amplitudes,self.frequency_comp,1))
         
     # FUNCTIONS
 
@@ -137,37 +140,33 @@ class MainApp(QMainWindow, FORM_CLASS):
                     f.plot_specto(self.audio_data, self.sample_rate, self.spectoframe1)
 
 
+
                 # Update the signal
                 self.update_signal(self.mode_comboBox.currentIndex())
-                f.update_plotting(self.frequency_comp, self.output_amplitudes, self.freqGraph)
+                f.freq_domain_plotting(self.frequency_comp, self.output_amplitudes, self.freqGraph)
     
     
     def reset(self):
-        if self.timer.isActive():
-            f.play_n_pause(self.playallButton, self.timer)
+        if self.timer_input.isActive():
+            f.play_n_pause(self.playallButton, self.timer_input)
             self.InputGraph.clear()
             self.index = 0
         else:
             self.InputGraph.clear()
             self.index = 0
         
-    def update_waveform(self):
+    def update_waveform(self,data,plot_widget):
         x_min = self.index
         x_max = min(len(self.time), self.index + 10)
-        
-        # self.InputGraph.setXRange(x_min, x_max)
-        
-        plot_item = self.InputGraph.plot(pen='b')
-        plot_item.setData(self.time[x_min:x_max], self.audio_data[x_min:x_max])
+
+        plot_item = plot_widget.plot(pen='b')
+        plot_item.setData(self.time[x_min:x_max], data[x_min:x_max])
+        plot_widget.setXRange(self.time[x_min], self.time[x_max])
 
         if self.index >= len(self.time):
             self.index = 0    
         self.index += 1
-        
-           
 
-
-                
 
     def change_mode(self, index):
         mode = self.mapping_mode[index]
@@ -194,7 +193,6 @@ class MainApp(QMainWindow, FORM_CLASS):
         if sliders:
             for slider in sliders:
                slider.valueChanged.connect(lambda: self.update_indicators(sliders, indicators))
-               # slider.valueChanged.connect(lambda: self.modifying_amplitudes(self.sliders_list.index(slider), slider.value() * 2 - 10, self.amplitudes, self.output_amplitudes))
 
     def update_indicators(self, sliders, indicators):
         if sliders:
@@ -209,14 +207,14 @@ class MainApp(QMainWindow, FORM_CLASS):
 
         # Refresh Sliders
         self.sliders_refresh(self.window_sliders, self.window_indicators)
-        for slider in self.window_sliders: slider.valueChanged.connect(lambda:f.get_smoothing_window_parameters(slider.value(),self.window_comboBox.currentIndex(),self.freqGraph,self.output_amplitudes,self.frequency_comp))
+        for slider in self.window_sliders: slider.valueChanged.connect(lambda:self.customize_smoothing_window_parameters(slider.value(),self.window_comboBox.currentIndex(),self.freqGraph,self.output_amplitudes,self.frequency_comp))
 
     def connect_slider_signals(self):
         for slider in self.sliders_list:slider.valueChanged.connect(lambda value, slider=slider: self.modifying_amplitudes(self.sliders_list.index(slider),slider.value() * 2 - 10, self.amplitudes,self.output_amplitudes))
 
     def modifying_amplitudes(self, freq_component_index, gain, input_amplitudes, output_amplitudes):
         # Frequency Ranges Mapping
-        animals_mode = {0: [1000, 7000], 1: [7000,20000], 2: [500, 2000], 3: [2000, 5000]}
+        animals_mode = {0: [2000, 14000], 1: [1000,20000], 2: [1000, 4000], 3: [4000, 10000]}
         music_mode = {0: [30, 150], 1: [349, 1400], 2: [262, 2500], 3: [27.5, 4180]}
         ecg_mode = {0: [1, 5], 1: [2, 10], 2: [10, 20]}
         default_mode = {key: key + 1 for key in range(10)}
@@ -235,9 +233,28 @@ class MainApp(QMainWindow, FORM_CLASS):
         elif mode_index == 3:
             start, end = music_mode[freq_component_index]
             output_amplitudes[start:end] = gain * input_amplitudes[start:end]
-       # f.apply_smoothing_window(output_amplitudes,f.get_smoothing_window_parameters,f.get_smoothing_window)
-       #  f.update_plotting(self.frequency_comp,output_amplitudes,self.freqGraph)
-        f.plot_smoothing_window(0,self.freqGraph,output_amplitudes,self.frequency_comp,1)
+        f.plot_smoothing_window(self.window_comboBox.currentIndex(),self.freqGraph,output_amplitudes,self.frequency_comp,1)
+        self.smooth_and_inverse_transform(self.window_comboBox.currentIndex(),1,output_amplitudes)
+
+    def get_smoothing_window(self,window_index, plot_widget, output_amp, freq_comp, parameter):
+     f.plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,parameter)
+     self.smooth_and_inverse_transform(window_index,parameter,output_amp)
+    def customize_smoothing_window_parameters(self,value,window_index,plot_widget,output_amp,freq_comp):
+         new_value = (value / 10) * 0.9 + 0.1
+         f.plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,new_value)
+         self.smooth_and_inverse_transform(window_index,new_value,output_amp)
+
+    def smooth_and_inverse_transform(self,index,parameter,output_amplitudes):
+        smoothed_signal=f.apply_smoothing_window(output_amplitudes,index,parameter)
+        self.edited_time_domain_signal=f.compute_inverse_fourier_transform(smoothed_signal,self.frequency_comp,self.phases)
+
+
+        # if self.showCheckBox.isChecked():
+        #     f.plot_specto(edited_time_domain_signal, self.sample_rate, self.spectoframe2)
+        self.OutputGraph.clear()
+        self.timer_output.start(100)
+
+        
 
 
 def main():

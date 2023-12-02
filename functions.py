@@ -8,6 +8,7 @@ from scipy.signal import *
 
 
 
+
 # FUNCTIONS
 def create_sliders(sliders_number, labels_list, frame, alignment):
     clear(frame)
@@ -69,17 +70,21 @@ def clear(frame):
                 widget.deleteLater()
 
 
-def play_n_pause(button, timer, sound, player):
-    if (timer.isActive()):
+def play_n_pause(button, timer_input,timer_output, sound, player):
+    if (timer_input.isActive()):
         icon = QIcon("icons/play.png")  # Use the resource path
         button.setIcon(icon)
-        timer.stop()
+        timer_input.stop()
+        timer_output.stop()
+
         if sound:
             pause_audio(player)
     else:
         icon = QIcon("icons/pause.png")  # Use the resource path
         button.setIcon(icon)
-        timer.start(100)
+        timer_input.start(100)
+        timer_output.start(100)
+
         if sound:
             play_audio(player)
 
@@ -130,38 +135,44 @@ def compute_fourier_transform(signal, Ts):
     return amplitudes, frequencies_fft, phases
 
 def apply_smoothing_window(output_amplitudes, index, parameter):
+
         window_length = parameter*len(output_amplitudes)
+
         if index == 0:  # Hamming
             alpha = 0.54
             n = np.arange(window_length)
             smoothing_window = alpha - (1 - alpha) * np.cos(2 * np.pi * n / (window_length - 1))
-            return output_amplitudes[0:int(window_length)+1]* smoothing_window
+            smoothed_signal= output_amplitudes[0:int(window_length)+1]* smoothing_window
+            return smoothed_signal
         elif index == 1:  # Hanning
             n = np.arange(window_length)
             smoothing_window = 0.5 * (1 - np.cos(2 * np.pi * n / (window_length - 1)))
-            return output_amplitudes[0:int(window_length)+1]* smoothing_window
+            smoothed_signal = output_amplitudes[0:int(window_length)+1]* smoothing_window
+            return smoothed_signal
         elif index == 2:  # gaussian
-            # sigma = ?
+
             x = np.linspace(-1, 1, int(window_length))
             smoothing_window = np.exp(-(x ** 2) / (2 * parameter ** 2))
-            return output_amplitudes[0:int(window_length)]* smoothing_window
+            smoothed_signal = output_amplitudes[0:int(window_length)]* smoothing_window
+            return smoothed_signal
 
         elif index == 3:  # rectangle
             smoothing_window = np.ones(int(window_length))
-            # smoothing_window = np.ones(window_length) * scaling_factor  # (scaling factor law msh ayzaha 1)
-            return output_amplitudes[0:int(window_length)] * smoothing_window
+            smoothed_signal = output_amplitudes[0:int(window_length)] * smoothing_window
+            return smoothed_signal
 
 
 
-def update_plotting(freq_comp,output_amplitudes,plot_widget):
+def freq_domain_plotting(freq_comp,output_amplitudes,plot_widget):
     plot_widget.clear()
     plot_widget.plot(freq_comp, output_amplitudes,pen="b")
     plot_widget.setLabel('left', 'Amplitude')
     plot_widget.setLabel('bottom', 'Frequency (Hz)')
 
 
-def get_smoothing_window(window_index,plot_widget,output_amp,freq_comp,parameter):
-    plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,parameter)
+# def get_smoothing_window(window_index,plot_widget,output_amp,freq_comp,parameter):
+#     plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,parameter)
+#     smooth_and_inverse_transform(i)
 
 
 
@@ -190,16 +201,17 @@ def plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,paramete
     elif window_index==3:
          window=scale*np.ones(int(window_length))
     plot_widget.clear()
-    update_plotting(freq_comp,output_amp,plot_widget)
-    apply_smoothing_window(output_amp,window_index,parameter)
+    freq_domain_plotting(freq_comp,output_amp,plot_widget)
+    #apply_smoothing_window(output_amp,window_index,parameter)
     plot_widget.plot(window,pen='r',fillLevel=0, fillBrush=(255, 0, 0, 100) )
 
-def get_smoothing_window_parameters(value,window_index,plot_widget,output_amp,freq_comp):
-    new_value = (value / 10) * 0.9 + 0.1
-    plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,new_value)
+# def customize_smoothing_window_parameters(value,window_index,plot_widget,output_amp,freq_comp):
+#     new_value = (value / 10) * 0.9 + 0.1
+#     plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,new_value)
 
-def compute_inverse_fourier_transform():
-    new_fft_result = new_amplitudes * np.exp(1j * phases)
+def compute_inverse_fourier_transform(new_amplitude,freq_comp,phases):
+    new_amplitudes=new_amplitude*len(new_amplitude)
+    new_fft_result = new_amplitudes * np.exp(1j * phases[0:len(new_amplitude)])
     inverse_fft = np.fft.irfft(new_fft_result)
     return inverse_fft
 
