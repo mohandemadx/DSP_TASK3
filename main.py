@@ -12,6 +12,7 @@ import numpy as np
 from PyQt5 import QtCore
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtCore import QUrl
+import sounddevice as sd
 
 FORM_CLASS, _ = loadUiType(path.join(path.dirname(__file__), "design.ui"))
 
@@ -44,6 +45,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.audio_data = []
         self.edited_time_domain_signal=[]
         self.sample_rate=44100
+        self.playing=False
         self.sliders_list = []
         self.indicators_list = []
         self.window_sliders = []
@@ -91,7 +93,7 @@ class MainApp(QMainWindow, FORM_CLASS):
             lambda: self.smoothing_window_type(self.window_comboBox.currentIndex()))
         self.playallButton.clicked.connect(lambda: f.play_n_pause(self.playallButton, self.timer_input,self.timer_output, False, _))
         self.playButton1.clicked.connect(lambda: f.play_n_pause(self.playButton1, self.timer1, None,True, self.media_playerIN))
-        self.playButton2.clicked.connect(lambda: f.play_n_pause(self.playButton2, self.timer2, None,True, self.media_playerOUT))
+        self.playButton2.clicked.connect(lambda: self.play_output_signal(self.playButton2,self.edited_time_domain_signal,self.sample_rate))
         self.speedSlider.valueChanged.connect(lambda: f.speed(self.speedSlider.value(), self.speedLabel, self.timer))
         self.resetButton.clicked.connect(self.reset)
         self.showCheckBox.stateChanged.connect(lambda: f.plot_specto(self.audio_data, self.sample_rate, self.spectoframe1, self.showCheckBox))
@@ -215,8 +217,8 @@ class MainApp(QMainWindow, FORM_CLASS):
 
     def modifying_amplitudes(self, freq_component_index, gain, input_amplitudes, output_amplitudes):
         # Frequency Ranges Mapping
-        animals_mode = {0: [2000, 14000], 1: [1000,20000], 2: [1000, 4000], 3: [4000, 10000]}
-        music_mode = {0: [30, 150], 1: [349, 1400], 2: [262, 2500], 3: [27.5, 4180]}
+        animals_mode = {0: [7000, len(self.frequency_comp)], 1: [0,7000], 2: [14000, len(self.frequency_comp)], 3: [2000, 14000]}
+        music_mode = {0: [0, 5000], 1: [0, 2500], 2: [5000, len(self.frequency_comp)], 3: [27.5, 4180]}
         ecg_mode = {0: [1, 5], 1: [2, 10], 2: [10, 20]}
         default_mode = {key: key + 1 for key in range(10)}
 
@@ -252,6 +254,18 @@ class MainApp(QMainWindow, FORM_CLASS):
             f.plot_specto(self.edited_time_domain_signal, self.sample_rate, self.spectoframe2, self.showCheckBox)
         self.OutputGraph.clear()
         self.timer_output.start(100)
+
+    def play_output_signal(self,button,samples,sample_rate):
+        if self.playing:
+            icon = QIcon("icons/play.png")
+            button.setIcon(icon)
+            sd.stop()
+            self.playing = False
+        else:
+            icon = QIcon("icons/pause.png")
+            button.setIcon(icon)
+            sd.play(samples, sample_rate)
+            self.playing=True
 
         
 

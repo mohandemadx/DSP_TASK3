@@ -5,6 +5,7 @@ import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 from scipy.signal import *
+import sounddevice as sd
 
 
 
@@ -239,5 +240,6 @@ def plot_specto(data, sample_rate, frame, checkbox):
         return
 
 
-        
+
+
     
