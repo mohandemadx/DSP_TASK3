@@ -70,8 +70,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.timer2 = QtCore.QTimer()
         self.timer_input.timeout.connect(lambda:self.update_waveform(self.audio_data,self.InputGraph))
         self.timer_output.timeout.connect(lambda:self.update_waveform(self.edited_time_domain_signal,self.OutputGraph))
-        # self.timer1.timeout.connect(self.timer_timeout)
-        # self.timer2.timeout.connect(self.timer_timeout)
+
 
         # Audio Players
         self.media_playerIN = QMediaPlayer()
@@ -106,57 +105,71 @@ class MainApp(QMainWindow, FORM_CLASS):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
 
-        filters = "WAV Files (*.wav)"
+        filters = "Audio and CSV Files (*.wav *.csv)"
         file_path, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileNames()", "", filters, options=options)
 
         if file_path:
             # Store file name
             file_name = file_path.split('/')[-1]
             label.setText(file_name)
-            if self.media_playerIN.state() == QMediaPlayer.StoppedState:
-                    self.media_playerIN.setMedia(QMediaContent(QUrl.fromLocalFile(file_path)))
 
-            # Open the .wav file for reading
-            with wave.open(file_path, 'rb') as audio_file:
-                # Get the audio file's parameters
-                num_frames = audio_file.getnframes()
-                
-                # Read audio data as bytes
-                raw_audio_data = audio_file.readframes(num_frames)
+            if file_path.lower().endswith('.wav'):
+                if self.media_playerIN.state() == QMediaPlayer.StoppedState:
+                        self.media_playerIN.setMedia(QMediaContent(QUrl.fromLocalFile(file_path)))
 
-                # Convert raw bytes to numerical values (assuming 16-bit PCM)
-                self.audio_data = np.frombuffer(raw_audio_data, dtype=np.int16)
+                # Open the .wav file for reading
+                with wave.open(file_path, 'rb') as audio_file:
+                    # Get the audio file's parameters
+                    num_frames = audio_file.getnframes()
 
-                sample_width = audio_file.getsampwidth()
-                self.sample_rate = audio_file.getframerate()
-                self.time = np.arange(0, len(self.audio_data)) / self.sample_rate
+                    # Read audio data as bytes
+                    raw_audio_data = audio_file.readframes(num_frames)
 
-                # Enabling the UI
-                self.playallButton.setEnabled(True)
-                self.resetButton.setEnabled(True)
-                self.zoomOutButton.setEnabled(True)
-                self.zoomInButton.setEnabled(True)
-                self.speedSlider.setEnabled(True)
-                self.showCheckBox.setEnabled(True)
-                
-                if self.showCheckBox.isChecked():
-                    f.plot_specto(self.audio_data, self.sample_rate, self.spectoframe1)
+                    # Convert raw bytes to numerical values (assuming 16-bit PCM)
+                    self.audio_data = np.frombuffer(raw_audio_data, dtype=np.int16)
+
+                    sample_width = audio_file.getsampwidth()
+                    self.sample_rate = audio_file.getframerate()
+                    self.time = np.arange(0, len(self.audio_data)) / self.sample_rate
+
+                    # Enabling the UI
+                    self.playallButton.setEnabled(True)
+                    self.resetButton.setEnabled(True)
+                    self.zoomOutButton.setEnabled(True)
+                    self.zoomInButton.setEnabled(True)
+                    self.speedSlider.setEnabled(True)
+                    self.showCheckBox.setEnabled(True)
+
+                    # Update the signal
+                    self.update_signal(self.mode_comboBox.currentIndex())
+                    f.freq_domain_plotting(self.frequency_comp, self.output_amplitudes, self.freqGraph)
+
+            elif file_path.lower().endswith('.csv'):
+                    data = np.loadtxt(file_path, delimiter=',', skiprows=1,usecols=(1,))
+                    self.audio_data = data
+                    self.time= data = np.loadtxt(file_path, delimiter=',', skiprows=1,usecols=(0,))
+                    self.sample_rate=1/(self.time[1]-self.time[0])
+
+                    self.playallButton.setEnabled(True)
+                    self.resetButton.setEnabled(True)
+                    self.zoomOutButton.setEnabled(True)
+                    self.zoomInButton.setEnabled(True)
+                    self.speedSlider.setEnabled(True)
+                    self.showCheckBox.setEnabled(True)
+
+                    self.update_signal(self.mode_comboBox.currentIndex())
+                    f.freq_domain_plotting(self.frequency_comp, self.output_amplitudes, self.freqGraph)
 
 
 
-                # Update the signal
-                self.update_signal(self.mode_comboBox.currentIndex())
-                f.freq_domain_plotting(self.frequency_comp, self.output_amplitudes, self.freqGraph)
-    
-    
     def reset(self):
-        if self.timer_input.isActive():
-            f.play_n_pause(self.playallButton, self.timer_input)
-            self.InputGraph.clear()
-            self.index = 0
-        else:
-            self.InputGraph.clear()
-            self.index = 0
+            if self.timer_input.isActive():
+                f.play_n_pause(self.playallButton, self.timer_input)
+                self.InputGraph.clear()
+                self.index = 0
+            else:
+                self.InputGraph.clear()
+                self.index = 0
         
     def update_waveform(self,data,plot_widget):
         x_min = self.index
