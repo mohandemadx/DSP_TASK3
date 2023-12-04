@@ -35,7 +35,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         r = namedtuple('Range', ['min', 'max'])
         self.default = c.Mode([f'{i*10} to {(i+1)*10} Hz' for i in range(10)],
                               [r(i * 1000 + 1, (i + 1) * 1000) for i in range(10)], 10)
-        self.ecg = c.Mode(['Normal ECG','A1', 'A2', 'A3'], [1 for _ in range(4)], 4)
+        self.ecg = c.Mode(['Normal ECG','Atrial fibrillation', 'Ventricular Tachycardia', 'Ventricular fibrillation'], [1 for _ in range(4)], 4)
         self.animals = c.Mode(['Duck', 'Dog', 'Monkey', 'Owl'], [1 for _ in range(4)], 4)
         self.musical = c.Mode(['Violin', 'Trumpet', 'Xylophone', 'Triangle'], [1 for _ in range(4)], 4)
 
@@ -158,6 +158,8 @@ class MainApp(QMainWindow, FORM_CLASS):
 
                     self.update_signal(self.mode_comboBox.currentIndex())
                     f.freq_domain_plotting(self.frequency_comp, self.output_amplitudes, self.freqGraph)
+            self.InputGraph.plot(self.audio_data)
+                #n plot static awel ma n3ml import
 
 
 
@@ -189,13 +191,11 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.sliders_refresh(self.sliders_list, indicators_list)
         self.update_signal(index)
         self.connect_slider_signals()
+        self.freqGraph.clear()
+        #mfrood n remove imported signal
 
     def update_signal(self, index):
-        # if index == 0:
-        #     self.signal = f.synthesize_signal()
-        #     Ts = 1/1000
-        #
-        # else:
+
         self.signal = self.audio_data
         Ts=1/self.sample_rate
 
@@ -231,7 +231,8 @@ class MainApp(QMainWindow, FORM_CLASS):
         # Frequency Ranges Mapping
         animals_mode = {0: [7000, 45000], 1: [0,7000], 2: [14000, len(self.frequency_comp)], 3: [2000, 14000]}
         music_mode = {0: [0, 10000], 1: [10000, 20000], 2: [20000, 30000], 3: [40000, 50000]}
-        ecg_mode = {0: [1, 5], 1: [2, 10], 2: [10, 20]}
+        #ecg_mode = {0: [0, 100], 1: [100, 150], 2: [150, 250],3:[250,len(self.frequency_comp)]}
+        ecg_mode = {0: [0, 1500], 1: [1500, 3000], 2: [3000, 4500], 3: [4500,6000]}
         default_mode = {0:[0,50],1:[50,100],2:[100,150],3:[150,200],4:[200,250],5:[250,300],6:[300,350],7:[350,400],8:[400,450],9:[450,501]}
 
         mode_index = self.mode_comboBox.currentIndex()
@@ -269,6 +270,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         if self.showCheckBox.isChecked():
             f.plot_specto(self.edited_time_domain_signal, self.sample_rate, self.spectoframe2, self.showCheckBox)
         self.OutputGraph.clear()
+        #self.OutputGraph.plot(self.edited_time_domain_signal)
         self.timer_output.start(100)
 
     def play_output_signal(self,button,samples,sample_rate):
