@@ -4,11 +4,8 @@ from PyQt5.QtCore import Qt
 import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
-from scipy.signal import *
 import sounddevice as sd
-
-
-
+import scipy.signal
 
 # FUNCTIONS
 def create_sliders(sliders_number, labels_list, frame, alignment):
@@ -21,31 +18,27 @@ def create_sliders(sliders_number, labels_list, frame, alignment):
 
         # create sliders and store them
         slider = QSlider()
+        slider.setRange(0, 10)
+        slider.setValue(1)
 
         # Vertical Sliders
         if alignment == 1:
-            slider.setRange(0, 10)
-            slider.setValue(5)
-
             # creating labels
             label = QLabel(labels_list[i])
             label.setAlignment(Qt.AlignLeft | Qt.AlignBottom)
 
             # creating value indicators
-            indicator = QLabel('0')
+            indicator = QLabel('1')
             indicator.setAlignment(Qt.AlignLeft | Qt.AlignTop)
 
         # Horizontal Sliders
         else:
-            slider.setRange(0, 10)
-            slider.setValue(5)
-
             # creating labels
             label = QLabel(labels_list[i])
             label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
             # creating value indicators
-            indicator = QLabel('0')
+            indicator = QLabel('1')
             indicator.setAlignment(Qt.AlignLeft | Qt.AlignBottom)
 
         slider.setOrientation(alignment)
@@ -71,13 +64,11 @@ def clear(frame):
                 widget.deleteLater()
 
 
-def play_n_pause(button, timer_input,timer_output, sound, player):
-    if (timer_input.isActive()):
+def play_n_pause(button, timer_input, sound, player):
+    if timer_input.isActive():
         icon = QIcon("icons/play.png")  # Use the resource path
         button.setIcon(icon)
         timer_input.stop()
-        if timer_output:
-            timer_output.stop()
 
         if sound:
             pause_audio(player)
@@ -85,13 +76,12 @@ def play_n_pause(button, timer_input,timer_output, sound, player):
         icon = QIcon("icons/pause.png")  # Use the resource path
         button.setIcon(icon)
         timer_input.start(100)
-        if timer_output:
-            timer_output.start(100)
 
         if sound:
             play_audio(player)
 
-def speed(slider_value, speed_label, timer):
+
+def speed(slider_value, speed_label, timer, button):
     map_speed_factor = {
         1: 0.2,
         2: 0.5,
@@ -99,71 +89,91 @@ def speed(slider_value, speed_label, timer):
         4: 1.5,
         5: 2.0,
     }
+    icon = QIcon("icons/pause.png")  # Use the resource path
+    button.setIcon(icon)
     speed_factor = map_speed_factor[slider_value]
     speed_label.setText(f'x {speed_factor}')
-    time_interval = int(100 / speed_factor ) # ms
+    time_interval = int(100 / speed_factor) # ms
     
     update_speed(timer, time_interval)
     
 def update_speed(timer, time_interval):
     timer.stop()
     timer.start(time_interval)
-    
-def synthesize_signal():
-    fs = 1000
-    T = 1 / fs
-    t = np.arange(0, 1, T)
-
-    num_components = 10
-
-    # Frequencies of the components in the range 1 to 10 Hz
-    frequencies = np.linspace(1, 10, num_components)
-
-    # Amplitudes of the components (set to 1 for each component)
-    amplitudes = np.ones(num_components)
-
-    # Synthesize the signal in the time domain
-    signal_time_domain = np.zeros_like(t)
-    for i in range(num_components):
-        signal_time_domain += amplitudes[i] * np.sin(2 * np.pi * frequencies[i] * t)
-
-    return signal_time_domain
 
 
 def compute_fourier_transform(signal, Ts):
     fourier_transform = np.fft.rfft(signal)
     frequencies_fft = np.fft.rfftfreq(len(signal), Ts)
-    amplitudes = np.abs(fourier_transform)/(len(signal) /2)
+    amplitudes = np.abs(fourier_transform)
     phases = np.angle(fourier_transform)
     return amplitudes, frequencies_fft, phases
 
-def apply_smoothing_window(output_amplitudes, index, parameter):
+# def apply_smoothing_window(output_amplitudes, index, parameter):
+#
+#         window_length = parameter*len(output_amplitudes)
+#
+#         if index == 0:  # Hamming
+#             alpha = 0.54
+#             n = np.arange(window_length)
+#             smoothing_window = alpha - (1 - alpha) * np.cos(2 * np.pi * n / (window_length - 1))
+#             smoothed_signal= output_amplitudes[0:int(window_length)+1]* smoothing_window
+#             return smoothed_signal
+#         elif index == 1:  # Hanning
+#             n = np.arange(window_length)
+#             smoothing_window = 0.5 * (1 - np.cos(2 * np.pi * n / (window_length - 1)))
+#             smoothed_signal = output_amplitudes[0:int(window_length)+1]* smoothing_window
+#             return smoothed_signal
+#         elif index == 2:  # gaussian
+#
+#             x = np.linspace(-1, 1, int(window_length))
+#             smoothing_window = np.exp(-(x ** 2) / (2 * parameter ** 2))
+#             smoothed_signal = output_amplitudes[0:int(window_length)]* smoothing_window
+#             return smoothed_signal
+#
+#         elif index == 3:  # rectangle
+#             smoothing_window = np.ones(int(window_length))
+#             smoothed_signal = output_amplitudes[0:int(window_length)] * smoothing_window
+#             return smoothed_signal
 
-        window_length = parameter*len(output_amplitudes)
+
+def apply_smoothing_window(output_amplitudes, index):
+
+        window_length = len(output_amplitudes)
 
         if index == 0:  # Hamming
-            alpha = 0.54
-            n = np.arange(window_length)
-            smoothing_window = alpha - (1 - alpha) * np.cos(2 * np.pi * n / (window_length - 1))
-            smoothed_signal= output_amplitudes[0:int(window_length)+1]* smoothing_window
+            window = scipy.signal.windows.hamming(window_length)
+            smoothed_signal = window*output_amplitudes
             return smoothed_signal
         elif index == 1:  # Hanning
-            n = np.arange(window_length)
-            smoothing_window = 0.5 * (1 - np.cos(2 * np.pi * n / (window_length - 1)))
-            smoothed_signal = output_amplitudes[0:int(window_length)+1]* smoothing_window
+            window = scipy.signal.windows.hann(window_length)
+            smoothed_signal = window * output_amplitudes
             return smoothed_signal
-        elif index == 2:  # gaussian
-
-            x = np.linspace(-1, 1, int(window_length))
-            smoothing_window = np.exp(-(x ** 2) / (2 * parameter ** 2))
-            smoothed_signal = output_amplitudes[0:int(window_length)]* smoothing_window
+        elif index == 2:# gaussian
+            window = scipy.signal.windows.gaussian(window_length, std=0.1)
+            smoothed_signal = window * output_amplitudes
             return smoothed_signal
-
         elif index == 3:  # rectangle
-            smoothing_window = np.ones(int(window_length))
-            smoothed_signal = output_amplitudes[0:int(window_length)] * smoothing_window
+            window = scipy.signal.windows.boxcar(window_length)
+            smoothed_signal = window * output_amplitudes
             return smoothed_signal
 
+# def apply_windowing(self, range, index, parameter):
+#         # window = scipy.signal.windows.boxcar(len(signal))
+#         # windowed_signal = signal * window
+#         # return windowed_signal
+#         if index == 3:
+#             window = scipy.signal.windows.boxcar(range)
+#         elif index == 0:
+#             window = scipy.signal.windows.hamming(range)
+#         elif index == 1:
+#             window = scipy.signal.windows.hann(range)
+#         elif index == 2:
+#             window = scipy.signal.windows.gaussian(range, std=0.1)
+#
+#         windowed_signal = window * slider_value
+#
+#         return windowed_signal
 
 
 def freq_domain_plotting(freq_comp,output_amplitudes,plot_widget):
@@ -176,8 +186,8 @@ def freq_domain_plotting(freq_comp,output_amplitudes,plot_widget):
 
 
 
-def plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,parameter):
-    N = len(output_amp)
+def plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,start,end,parameter):
+    N = len(output_amp[start:end])
     window_length=parameter*N
     std=parameter
     scale=max(output_amp)
@@ -208,41 +218,49 @@ def plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,paramete
 
 
 def compute_inverse_fourier_transform(new_amplitude,freq_comp,phases):
-    new_amplitudes=new_amplitude*len(new_amplitude)
-    new_fft_result = new_amplitudes * np.exp(1j * phases[0:len(new_amplitude)])
+    # new_amplitudes=new_amplitude*len(new_amplitude)/2
+    new_amplitudes = new_amplitude
+    new_fft_result = new_amplitudes * np.exp(1j * phases)
     inverse_fft = np.fft.irfft(new_fft_result)
     return inverse_fft
 
 
 def play_audio(player):
     player.play()
-    
+
+
 def pause_audio(player):
     player.pause()
-    
+
+
 def plot_specto(data, sample_rate, frame, checkbox):
     clear(frame)
-    if len(data)==0:
+    if len(data) == 0:
         return
     else:
-                if checkbox.isChecked():
-                    canvas = FigureCanvas(plt.Figure())
-                    layout = frame.layout()
-                    layout.addWidget(canvas)
+        if checkbox.isChecked():
+            canvas = FigureCanvas(plt.Figure())
+            layout = frame.layout()
+            layout.addWidget(canvas)
 
-                    # Plot the spectrogram
-                    plt.figure()
-                    plt.specgram(data, Fs=sample_rate, cmap='viridis', aspect='auto')
-                    plt.xlabel('Time (s)')
-                    plt.ylabel('Frequency (Hz)')
-                    plt.title('Spectrogram')
-                    canvas.figure.clear()
-                    canvas.figure = plt.gcf()
-                    canvas.draw()
-                else:
-                    return
+            # Plot the spectrogram
+            plt.figure()
+            plt.specgram(data, Fs=sample_rate, cmap='viridis', aspect='auto')
+            plt.xlabel('Time (s)')
+            plt.ylabel('Frequency (Hz)')
+            plt.title('Spectrogram')
+            canvas.figure.clear()
+            canvas.figure = plt.gcf()
+            canvas.draw()
+        else:
+            return
 
 
-
+def plot_waveform(data, sample_rate, plot_widget):
+    time = np.arange(0, len(data)) / sample_rate
+    plot_widget.plot(time, data)
+    plot_widget.setLabel('left', 'Amplitude')
+    plot_widget.setLabel('bottom', 'Time (s)')
+    plot_widget.showGrid(x=True, y=True)
 
     
