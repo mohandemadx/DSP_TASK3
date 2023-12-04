@@ -33,11 +33,11 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.rectangle = c.WindowType(['constant'], 1)
 
         r = namedtuple('Range', ['min', 'max'])
-        self.default = c.Mode([f'{i} to {i + 1} KHz' for i in range(10)],
+        self.default = c.Mode([f'{i*10} to {(i+1)*10} Hz' for i in range(10)],
                               [r(i * 1000 + 1, (i + 1) * 1000) for i in range(10)], 10)
-        self.ecg = c.Mode(['A1', 'A2', 'A3'], [1 for _ in range(3)], 3)
+        self.ecg = c.Mode(['Normal ECG','A1', 'A2', 'A3'], [1 for _ in range(4)], 4)
         self.animals = c.Mode(['Duck', 'Dog', 'Monkey', 'Owl'], [1 for _ in range(4)], 4)
-        self.musical = c.Mode(['Drums', 'Trumpet', 'Flute', 'Piano'], [1 for _ in range(4)], 4)
+        self.musical = c.Mode(['Violin', 'Trumpet', 'Xylophone', 'Triangle'], [1 for _ in range(4)], 4)
 
         # Variables
         
@@ -149,7 +149,6 @@ class MainApp(QMainWindow, FORM_CLASS):
                     self.audio_data = data
                     self.time= data = np.loadtxt(file_path, delimiter=',', skiprows=1,usecols=(0,))
                     self.sample_rate=1/(self.time[1]-self.time[0])
-
                     self.playallButton.setEnabled(True)
                     self.resetButton.setEnabled(True)
                     self.zoomOutButton.setEnabled(True)
@@ -180,7 +179,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         plot_widget.setXRange(self.time[x_min], self.time[x_max])
 
         if self.index >= len(self.time):
-            self.index = 0    
+            self.index = 0
         self.index += 1
 
 
@@ -192,13 +191,13 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.connect_slider_signals()
 
     def update_signal(self, index):
-        if index == 0:
-            self.signal = f.synthesize_signal()
-            Ts = 1/1000
-
-        else:
-            self.signal = self.audio_data
-            Ts=1/self.sample_rate
+        # if index == 0:
+        #     self.signal = f.synthesize_signal()
+        #     Ts = 1/1000
+        #
+        # else:
+        self.signal = self.audio_data
+        Ts=1/self.sample_rate
 
 
         if len(self.signal):
@@ -230,25 +229,29 @@ class MainApp(QMainWindow, FORM_CLASS):
 
     def modifying_amplitudes(self, freq_component_index, gain, input_amplitudes, output_amplitudes):
         # Frequency Ranges Mapping
-        animals_mode = {0: [7000, len(self.frequency_comp)], 1: [0,7000], 2: [14000, len(self.frequency_comp)], 3: [2000, 14000]}
-        music_mode = {0: [0, 5000], 1: [0, 2500], 2: [5000, len(self.frequency_comp)], 3: [27.5, 4180]}
+        animals_mode = {0: [7000, 45000], 1: [0,7000], 2: [14000, len(self.frequency_comp)], 3: [2000, 14000]}
+        music_mode = {0: [0, 10000], 1: [10000, 20000], 2: [20000, 30000], 3: [40000, 50000]}
         ecg_mode = {0: [1, 5], 1: [2, 10], 2: [10, 20]}
-        default_mode = {key: key + 1 for key in range(10)}
+        default_mode = {0:[0,50],1:[50,100],2:[100,150],3:[150,200],4:[200,250],5:[250,300],6:[300,350],7:[350,400],8:[400,450],9:[450,501]}
 
         mode_index = self.mode_comboBox.currentIndex()
 
         if mode_index == 0:
-            output_amplitudes[default_mode[freq_component_index]] = gain * input_amplitudes[
-                default_mode[freq_component_index]]
+            start, end = default_mode[freq_component_index]
+            output_amplitudes[start:end] = gain * input_amplitudes[start:end]
         elif mode_index == 1:
             start, end = ecg_mode[freq_component_index]
             output_amplitudes[start:end] = gain * input_amplitudes[start:end]
         elif mode_index == 2:
             start, end = animals_mode[freq_component_index]
             output_amplitudes[start:end] = gain * input_amplitudes[start:end]
+
         elif mode_index == 3:
             start, end = music_mode[freq_component_index]
             output_amplitudes[start:end] = gain * input_amplitudes[start:end]
+            #for removing noise
+            output_amplitudes[50000:len(self.frequency_comp)] = 0 * input_amplitudes[50000:len(self.frequency_comp)]
+            output_amplitudes[30000:40000] = 0 * input_amplitudes[30000:40000]
         f.plot_smoothing_window(self.window_comboBox.currentIndex(),self.freqGraph,output_amplitudes,self.frequency_comp,1)
         self.smooth_and_inverse_transform(self.window_comboBox.currentIndex(),1,output_amplitudes)
 

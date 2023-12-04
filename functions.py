@@ -222,22 +222,25 @@ def pause_audio(player):
     
 def plot_specto(data, sample_rate, frame, checkbox):
     clear(frame)
-    if checkbox.isChecked():
-        canvas = FigureCanvas(plt.Figure())
-        layout = frame.layout()
-        layout.addWidget(canvas)
-
-        # Plot the spectrogram
-        plt.figure()
-        plt.specgram(data, Fs=sample_rate, cmap='viridis', aspect='auto')
-        plt.xlabel('Time (s)')
-        plt.ylabel('Frequency (Hz)')
-        plt.title('Spectrogram')
-        canvas.figure.clear()
-        canvas.figure = plt.gcf()
-        canvas.draw()
-    else:
+    if len(data)==0:
         return
+    else:
+                if checkbox.isChecked():
+                    canvas = FigureCanvas(plt.Figure())
+                    layout = frame.layout()
+                    layout.addWidget(canvas)
+
+                    # Plot the spectrogram
+                    plt.figure()
+                    plt.specgram(data, Fs=sample_rate, cmap='viridis', aspect='auto')
+                    plt.xlabel('Time (s)')
+                    plt.ylabel('Frequency (Hz)')
+                    plt.title('Spectrogram')
+                    canvas.figure.clear()
+                    canvas.figure = plt.gcf()
+                    canvas.draw()
+                else:
+                    return
 
 
 
