@@ -14,6 +14,7 @@ from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtCore import QUrl
 import sounddevice as sd
 import scipy.signal
+from scipy.signal import windows,gaussian,hann
 
 FORM_CLASS, _ = loadUiType(path.join(path.dirname(__file__), "design.ui"))
 
@@ -252,12 +253,13 @@ class MainApp(QMainWindow, FORM_CLASS):
 
     def modifying_amplitudes(self, freq_component_index, gain, input_amplitudes, output_amplitudes,window_index):
         # Frequency Ranges Mapping
-        #indices = np.where((self.frequency_comp >= 2000) & (self.frequency_comp <= 3000))[0]
-        animals_mode = {0: [7000, 45000], 1: [0,7000], 2: [14000,80000], 3: [2000, 14000]}
+        # indices = np.where((self.frequency_comp >= 90) & (self.frequency_comp <=100))[0]
+        # print(indices)
+        animals_mode = {0: [7000, 45000], 1: [0,7000], 2: [14000,100000], 3: [2000, 14000]}
         music_mode = {0: [0,8815], 1: [8816, 17630], 2: [17631, 26445], 3: [17631, 26445]}
         #ecg_mode = {0: [0, 100], 1: [100, 150], 2: [150, 250],3:[250,len(self.frequency_comp)]}
-        ecg_mode = {0: [0, 1500], 1: [1500, 3000], 2: [3000, 4500], 3: [4500,6000]}
-        default_mode = {0:[0,50],1:[50,100],2:[100,150],3:[150,200],4:[200,250],5:[250,300],6:[300,350],7:[350,400],8:[400,450],9:[450,501]}
+        ecg_mode = {0: [0, 1500], 1: [1500,2250], 2: [2250, 3750], 3: [3750,7500]}
+        default_mode = {0:[0,50],1:[50,100],2:[100,150],3:[150,200],4:[200,250],5:[250,300],6:[300,350],7:[350,400],8:[400,450],9:[450,500]}
 
         mode_index = self.mode_comboBox.currentIndex()
 
@@ -278,14 +280,11 @@ class MainApp(QMainWindow, FORM_CLASS):
             output_amplitudes[start:end] = gain * input_amplitudes[start:end]
             f.plot_smoothing_window(self.window_comboBox.currentIndex(), self.freqGraph, output_amplitudes,
                                     self.frequency_comp, start, end, 1)
-            # output_amplitudes[100000:len(self.frequency_comp)] = 0 * input_amplitudes[100000:len(self.frequency_comp)]
             output_amplitudes[start:end]=f.apply_smoothing_window(output_amplitudes[start:end], window_index)
         elif mode_index == 3:
             start, end = music_mode[freq_component_index]
             output_amplitudes[start:end] = gain * input_amplitudes[start:end]
-            #for removing noise
-            # output_amplitudes[50000:len(self.frequency_comp)] = 0 * input_amplitudes[50000:len(self.frequency_comp)]
-            # output_amplitudes[30000:40000] = 0 * input_amplitudes[30000:40000]
+
             f.plot_smoothing_window(self.window_comboBox.currentIndex(), self.freqGraph, output_amplitudes,
                                     self.frequency_comp,start,end, 1)
             output_amplitudes[start:end]=f.apply_smoothing_window(output_amplitudes[start:end], window_index)
@@ -293,7 +292,8 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.smooth_and_inverse_transform(output_amplitudes)
 
     def get_smoothing_window(self,window_index, plot_widget, output_amp, freq_comp, parameter):
-        f.plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,start,end,parameter)
+        self.reset_sliders()
+        #f.plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,start,end,parameter)
         # self.smooth_and_inverse_transform(window_index,parameter,output_amp)
 
     def customize_smoothing_window_parameters(self,value,window_index,plot_widget,output_amp,freq_comp):
@@ -307,8 +307,6 @@ class MainApp(QMainWindow, FORM_CLASS):
         if self.showCheckBox.isChecked():
             f.plot_specto(self.edited_time_domain_signal, self.sample_rate, self.spectoframe2, self.showCheckBox)
 
-        self.reset()
-        print(self.edited_time_domain_signal,self.audio_data)
 
     def play_output_signal(self,button,samples,sample_rate):
         if self.playing:
@@ -319,7 +317,7 @@ class MainApp(QMainWindow, FORM_CLASS):
         else:
             icon = QIcon("icons/pause.png")
             button.setIcon(icon)
-            new_samples = samples.astype(np.float32) / 32767.0
+            new_samples = samples.astype(np.float32) / 32767.0  # Convert int16 to float32
             sd.play(new_samples, sample_rate)
             self.playing = True
 

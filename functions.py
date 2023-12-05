@@ -6,6 +6,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import sounddevice as sd
 import scipy.signal
+from scipy.signal import windows,gaussian,hann
 
 # FUNCTIONS
 def create_sliders(sliders_number, labels_list, frame, alignment):
@@ -187,33 +188,44 @@ def freq_domain_plotting(freq_comp,output_amplitudes,plot_widget):
 
 
 def plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,start,end,parameter):
+
     N = len(output_amp[start:end])
     window_length=parameter*N
     std=parameter
     scale=max(output_amp)
-    n = np.arange(0, window_length)
+
 
     # Hamming
     if window_index==0:
-       window =scale*( 0.54 - 0.46 * np.cos(2 * np.pi * n / (window_length- 1)))
+        window_type='hamming'
+        hamming_window = windows.get_window(window_type, window_length)
+        frequency_domain_window = np.zeros_like(freq_comp)
+        frequency_domain_window[start:end] = hamming_window
+       # window =scale*( 0.54 - 0.46 * np.cos(2 * np.pi * n / (window_length- 1)))
+
 
     # Hanning
     elif window_index==1:
-        window =scale*( 0.5 * (1 - np.cos(2 * np.pi * n / (window_length - 1))))
+        hanning_window = hann(window_length)
+        frequency_domain_window = np.zeros_like(freq_comp)
+        frequency_domain_window[start:end] = hanning_window
 
     #Gaussian
     elif window_index==2:
-        x = np.linspace(-1, 1, N)
-        window=scale*( np.exp(-(x ** 2) / (2 * parameter ** 2)))
+        gaussian_window = gaussian(window_length, std=5)
+        frequency_domain_window = np.zeros_like(freq_comp)
+        frequency_domain_window[start:end] = gaussian_window
 
 
     #Rectangular
     elif window_index==3:
-         window=scale*np.ones(int(window_length))
+        frequency_domain_window = np.zeros_like(freq_comp)
+        frequency_domain_window[start:end] = 1
+
     plot_widget.clear()
     freq_domain_plotting(freq_comp,output_amp,plot_widget)
     #apply_smoothing_window(output_amp,window_index,parameter)
-    plot_widget.plot(window,pen='r',fillLevel=0, fillBrush=(255, 0, 0, 100) )
+    plot_widget.plot(freq_comp,scale*frequency_domain_window,pen='r',fillLevel=0, fillBrush=(255, 0, 0, 100) )
 
 
 
