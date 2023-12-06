@@ -154,11 +154,11 @@ class MainApp(QMainWindow, FORM_CLASS):
 
             elif file_path.lower().endswith('.csv'):
                 data = np.loadtxt(file_path, delimiter=',', skiprows=1,usecols=(1,))
-                self.audio_data = data
+                self.audio_data = data[0:1000]
                 self.edited_time_domain_signal = self.audio_data.copy()
                 self.x = np.loadtxt(file_path, delimiter=',', skiprows=1,usecols=(0,))
-                self.sample_rate = 1/(self.x[1]-self.x[0])
-                self.time = np.arange(0, len(self.audio_data)) / self.sample_rate
+                self.sample_rate = 1/(self.x[2]-self.x[1])
+                self.time = self.x[0:1000]
                 self.playallButton.setEnabled(True)
                 self.resetButton.setEnabled(True)
                 self.zoomOutButton.setEnabled(True)
@@ -258,10 +258,12 @@ class MainApp(QMainWindow, FORM_CLASS):
 
     def modifying_amplitudes(self, freq_component_index, gain, input_amplitudes, output_amplitudes,window_index,parameter):
         # Frequency Ranges Mapping
+        indice=np.where((self.frequency_comp>75) & (self.frequency_comp<90))[0]
+        print(indice)
         animals_mode = {0: [7000, 45000], 1: [0,7000], 2: [14000,100000], 3: [2000, 14000]}
         music_mode = {0: [0,8815], 1: [8816, 17630], 2: [17631, 26445], 3: [17631, 26445]}
         #ecg_mode = {0: [0, 100], 1: [100, 150], 2: [150, 250],3:[250,len(self.frequency_comp)]}
-        ecg_mode = {0: [0, 1500], 1: [1500,2250], 2: [2250, 3750], 3: [3750,7500]}
+        ecg_mode = {0: [0, 1500], 1: [158,178], 2: [2250, 3750], 3: [3750,7500]}
         default_mode = {0:[0,50],1:[50,100],2:[100,150],3:[150,200],4:[200,250],5:[250,300],6:[300,350],7:[350,400],8:[400,450],9:[450,500]}
 
         mode_index = self.mode_comboBox.currentIndex()
@@ -308,6 +310,8 @@ class MainApp(QMainWindow, FORM_CLASS):
 
     def smooth_and_inverse_transform(self,output_amplitudes):
         self.edited_time_domain_signal=f.compute_inverse_fourier_transform(output_amplitudes,self.frequency_comp,self.phases)
+        self.OutputGraph.clear()
+        f.plot_waveform(self.edited_time_domain_signal, self.sample_rate, self.OutputGraph)
         if self.showCheckBox.isChecked():
             f.plot_specto(self.edited_time_domain_signal, self.sample_rate, self.spectoframe2, self.showCheckBox)
 
