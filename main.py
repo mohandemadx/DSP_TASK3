@@ -29,10 +29,10 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.setWindowTitle("Signal Equalizer")
         
         # Objects
-        self.hamming = c.WindowType(['N'], 1)
-        self.hanning = c.WindowType(['N'], 1)
+        self.hamming = c.WindowType(['N'], 0)
+        self.hanning = c.WindowType(['N'], 0)
         self.gaussian = c.WindowType(['Std'], 1)
-        self.rectangle = c.WindowType(['constant'], 1)
+        self.rectangle = c.WindowType(['constant'], 0)
 
         r = namedtuple('Range', ['min', 'max'])
         self.default = c.Mode([f'{i*10} to {(i+1)*10} Hz' for i in range(10)],
@@ -100,7 +100,10 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.showCheckBox.stateChanged.connect(lambda: f.plot_specto(self.audio_data, self.sample_rate, self.spectoframe1, self.showCheckBox))
         self.showCheckBox.stateChanged.connect(lambda: f.plot_specto(self.edited_time_domain_signal, self.sample_rate, self.spectoframe2, self.showCheckBox))
         self.window_comboBox.currentIndexChanged.connect(lambda:self.get_smoothing_window(self.window_comboBox.currentIndex(),self.freqGraph,self.output_amplitudes,self.frequency_comp,1))
-        
+        self.zoomInButton.clicked.connect(lambda:f.zoomIN(self.InputGraph,self.OutputGraph))
+        self.zoomOutButton.clicked.connect(lambda:f.zoomOUT(self.InputGraph, self.OutputGraph))
+        self.SliderFrame.setEnabled(False)
+        self.window_comboBox.setEnabled(False)
     # FUNCTIONS
     def enable_widgets(self):
         pass
@@ -169,6 +172,8 @@ class MainApp(QMainWindow, FORM_CLASS):
         self.OutputGraph.clear()
         f.plot_waveform(self.audio_data, self.sample_rate, self.InputGraph)
         f.plot_waveform(self.edited_time_domain_signal, self.sample_rate, self.OutputGraph)
+        self.SliderFrame.setEnabled(True)
+        self.window_comboBox.setEnabled(True)
 
 
                 #n plot static awel ma n3ml import
@@ -249,12 +254,10 @@ class MainApp(QMainWindow, FORM_CLASS):
         for slider in self.window_sliders: slider.valueChanged.connect(lambda:self.customize_smoothing_window_parameters(slider.value(),self.window_comboBox.currentIndex(),self.freqGraph,self.output_amplitudes,self.frequency_comp))
 
     def connect_slider_signals(self):
-        for slider in self.sliders_list:slider.valueChanged.connect(lambda value, slider=slider: self.modifying_amplitudes(self.sliders_list.index(slider),slider.value() , self.amplitudes,self.output_amplitudes,self.window_comboBox.currentIndex()))
+        for slider in self.sliders_list:slider.valueChanged.connect(lambda value, slider=slider: self.modifying_amplitudes(self.sliders_list.index(slider),slider.value() , self.amplitudes,self.output_amplitudes,self.window_comboBox.currentIndex(),1))
 
-    def modifying_amplitudes(self, freq_component_index, gain, input_amplitudes, output_amplitudes,window_index):
+    def modifying_amplitudes(self, freq_component_index, gain, input_amplitudes, output_amplitudes,window_index,parameter):
         # Frequency Ranges Mapping
-        # indices = np.where((self.frequency_comp >= 90) & (self.frequency_comp <=100))[0]
-        # print(indices)
         animals_mode = {0: [7000, 45000], 1: [0,7000], 2: [14000,100000], 3: [2000, 14000]}
         music_mode = {0: [0,8815], 1: [8816, 17630], 2: [17631, 26445], 3: [17631, 26445]}
         #ecg_mode = {0: [0, 100], 1: [100, 150], 2: [150, 250],3:[250,len(self.frequency_comp)]}
@@ -268,37 +271,38 @@ class MainApp(QMainWindow, FORM_CLASS):
             output_amplitudes[start:end] = gain * input_amplitudes[start:end]
             f.plot_smoothing_window(self.window_comboBox.currentIndex(), self.freqGraph, output_amplitudes,
                                     self.frequency_comp, start, end, 1)
-            output_amplitudes[start:end]= f.apply_smoothing_window(output_amplitudes[start:end],window_index)
+            output_amplitudes[start:end]= f.apply_smoothing_window(output_amplitudes[start:end],window_index,parameter)
         elif mode_index == 1:
             start, end = ecg_mode[freq_component_index]
             output_amplitudes[start:end] = gain * input_amplitudes[start:end]
             f.plot_smoothing_window(self.window_comboBox.currentIndex(), self.freqGraph, output_amplitudes,
                                     self.frequency_comp, start, end, 1)
-            output_amplitudes[start:end]=f.apply_smoothing_window(output_amplitudes[start:end], window_index)
+            output_amplitudes[start:end]=f.apply_smoothing_window(output_amplitudes[start:end], window_index,parameter)
         elif mode_index == 2:
             start, end = animals_mode[freq_component_index]
             output_amplitudes[start:end] = gain * input_amplitudes[start:end]
             f.plot_smoothing_window(self.window_comboBox.currentIndex(), self.freqGraph, output_amplitudes,
-                                    self.frequency_comp, start, end, 1)
-            output_amplitudes[start:end]=f.apply_smoothing_window(output_amplitudes[start:end], window_index)
+                                    self.frequency_comp, start, end, parameter)
+            output_amplitudes[start:end]=f.apply_smoothing_window(output_amplitudes[start:end], window_index,parameter)
         elif mode_index == 3:
             start, end = music_mode[freq_component_index]
             output_amplitudes[start:end] = gain * input_amplitudes[start:end]
 
             f.plot_smoothing_window(self.window_comboBox.currentIndex(), self.freqGraph, output_amplitudes,
                                     self.frequency_comp,start,end, 1)
-            output_amplitudes[start:end]=f.apply_smoothing_window(output_amplitudes[start:end], window_index)
+            output_amplitudes[start:end]=f.apply_smoothing_window(output_amplitudes[start:end], window_index,parameter)
 
         self.smooth_and_inverse_transform(output_amplitudes)
 
     def get_smoothing_window(self,window_index, plot_widget, output_amp, freq_comp, parameter):
-        self.reset_sliders()
+        self.modifying_amplitudes(0,1,output_amp,output_amp,window_index,1)
         #f.plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,start,end,parameter)
         # self.smooth_and_inverse_transform(window_index,parameter,output_amp)
 
     def customize_smoothing_window_parameters(self,value,window_index,plot_widget,output_amp,freq_comp):
-         new_value = (value / 10) * 0.9 + 0.1
-         f.plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,new_value)
+         new_value = value
+         self.modifying_amplitudes(0, 1, output_amp, output_amp, window_index,new_value)
+
 
          # self.smooth_and_inverse_transform(window_index,new_value,output_amp)
 

@@ -645,10 +645,16 @@
           <enum>QFrame::Plain</enum>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
-          <item row="3" column="1">
-           <widget class="QSlider" name="audioSlider2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+          <item row="2" column="0" colspan="2">
+           <widget class="QLabel" name="label_4">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Output (After Edits):</string>
             </property>
            </widget>
           </item>
@@ -656,29 +662,6 @@
            <widget class="QSlider" name="audioSlider1">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QPushButton" name="playButton1">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="icons.qrc">
-              <normaloff>:/icons/icons/play.png</normaloff>:/icons/icons/play.png</iconset>
-            </property>
-            <property name="iconSize">
-             <size>
-              <width>20</width>
-              <height>25</height>
-             </size>
             </property>
            </widget>
           </item>
@@ -692,42 +675,6 @@
             </property>
             <property name="text">
              <string>Input (Before Edits):</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="2">
-           <widget class="QPushButton" name="muteButton2">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="icons.qrc">
-              <normaloff>:/icons/icons/mute.png</normaloff>:/icons/icons/mute.png</iconset>
-            </property>
-            <property name="iconSize">
-             <size>
-              <width>20</width>
-              <height>25</height>
-             </size>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0" colspan="2">
-           <widget class="QLabel" name="label_4">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Output (After Edits):</string>
             </property>
            </widget>
           </item>
@@ -754,8 +701,8 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="QPushButton" name="muteButton1">
+          <item row="1" column="0">
+           <widget class="QPushButton" name="playButton1">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
               <horstretch>0</horstretch>
@@ -767,13 +714,20 @@
             </property>
             <property name="icon">
              <iconset resource="icons.qrc">
-              <normaloff>:/icons/icons/mute.png</normaloff>:/icons/icons/mute.png</iconset>
+              <normaloff>:/icons/icons/play.png</normaloff>:/icons/icons/play.png</iconset>
             </property>
             <property name="iconSize">
              <size>
               <width>20</width>
               <height>25</height>
              </size>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QSlider" name="audioSlider2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
            </widget>
           </item>

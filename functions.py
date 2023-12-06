@@ -138,10 +138,10 @@ def compute_fourier_transform(signal, Ts):
 #             return smoothed_signal
 
 
-def apply_smoothing_window(output_amplitudes, index):
+def apply_smoothing_window(output_amplitudes, index,parameter):
 
         window_length = len(output_amplitudes)
-
+        std=parameter
         if index == 0:  # Hamming
             window = scipy.signal.windows.hamming(window_length)
             smoothed_signal = window*output_amplitudes
@@ -151,7 +151,7 @@ def apply_smoothing_window(output_amplitudes, index):
             smoothed_signal = window * output_amplitudes
             return smoothed_signal
         elif index == 2:# gaussian
-            window = scipy.signal.windows.gaussian(window_length, std=0.1)
+            window = scipy.signal.windows.gaussian(window_length, std*window_length)
             smoothed_signal = window * output_amplitudes
             return smoothed_signal
         elif index == 3:  # rectangle
@@ -190,7 +190,7 @@ def freq_domain_plotting(freq_comp,output_amplitudes,plot_widget):
 def plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,start,end,parameter):
 
     N = len(output_amp[start:end])
-    window_length=parameter*N
+    window_length=N
     std=parameter
     scale=max(output_amp)
 
@@ -212,7 +212,7 @@ def plot_smoothing_window(window_index,plot_widget,output_amp,freq_comp,start,en
 
     #Gaussian
     elif window_index==2:
-        gaussian_window = gaussian(window_length, std=5)
+        gaussian_window = scipy.signal.windows.gaussian(window_length, std*window_length)
         frequency_domain_window = np.zeros_like(freq_comp)
         frequency_domain_window[start:end] = gaussian_window
 
@@ -266,7 +266,16 @@ def plot_specto(data, sample_rate, frame, checkbox):
             canvas.draw()
         else:
             return
+def zoomIN(Input_plot_widget,output_plot_widget):
+    zoom_factor = 0.8
+    Input_plot_widget.getViewBox().scaleBy((zoom_factor, zoom_factor))
+    output_plot_widget.getViewBox().scaleBy((zoom_factor, zoom_factor))
 
+
+def zoomOUT(Input_plot_widget,output_plot_widget):
+    zoom_factor = 1.2
+    Input_plot_widget.getViewBox().scaleBy((zoom_factor, zoom_factor))
+    output_plot_widget.getViewBox().scaleBy((zoom_factor, zoom_factor))
 
 def plot_waveform(data, sample_rate, plot_widget):
     time = np.arange(0, len(data)) / sample_rate
