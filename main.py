@@ -36,10 +36,11 @@ class MainApp(QMainWindow, FORM_CLASS):
 
         r = namedtuple('Range', ['min', 'max'])
         self.default = c.Mode([f'{i*10} to {(i+1)*10} Hz' for i in range(10)],
-                              [r(i * 1000 + 1, (i + 1) * 1000) for i in range(10)], 10)
+                              [r(i * 50, (i + 1) * 50) for i in range(10)], 10)
         self.ecg = c.Mode(['Normal ECG', 'Atrial fibrillation', 'Ventricular Tachycardia', 'Ventricular fibrillation'], [1 for _ in range(4)], 4)
-        self.animals = c.Mode(['Duck', 'Dog', 'Monkey', 'Owl'], [1 for _ in range(4)], 4)
+        self.animals = c.Mode(['Wolf', 'Cow', 'Monkey', 'Eagle'], [r(400, 800), r(800, 1300), r(1400, 3000), r(3000, 10000)], 4)
         self.musical = c.Mode(['Violin', 'Trumpet', 'Xylophone', 'Triangle'], [1 for _ in range(4)], 4)
+
 
         # Variables
         
@@ -65,7 +66,7 @@ class MainApp(QMainWindow, FORM_CLASS):
             2: self.gaussian,
             3: self.rectangle,
         }
-        self.animals_mode = {0: [7000, 45000], 1: [0, 7000], 2: [14000, 100000], 3: [2000, 14000]}
+        self.animals_mode = {0: [8756, 17510], 1: [17511, 28454], 2: [30644, 65663], 3: [65665, 218879]}
         self.music_mode = {0: [0, 8815], 1: [8816, 17630], 2: [17631, 26445], 3: [17631, 26445]}
         # ecg_mode = {0: [0, 100], 1: [100, 150], 2: [150, 250],3:[250,len(self.frequency_comp)]}
         self.ecg_mode = {0: [0, 1500], 1: [158, 178], 2: [2250, 3750], 3: [3750, 7500]}
@@ -246,8 +247,8 @@ class MainApp(QMainWindow, FORM_CLASS):
 
     def modify_output_amplitudes(self, mode_index, freq_component_index, gain, input_amplitudes, output_amplitudes,
                                  window_index, parameter, frequency_comp, freqGraph):
-        # indice = np.where((self.frequency_comp > 75) & (self.frequency_comp < 90))[0]
-        # print(indice)
+        indice = np.where((self.frequency_comp > 3000) & (self.frequency_comp < 10000))[0]
+        print(indice)
         mode_ranges = {
             0: self.default_mode,
             1: self.ecg_mode,
