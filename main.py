@@ -13,7 +13,6 @@ from PyQt5 import QtCore
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtCore import QUrl
 import sounddevice as sd
-import scipy.signal
 from scipy.signal import *
 
 

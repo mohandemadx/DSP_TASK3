@@ -4,7 +4,6 @@ from PyQt5.QtCore import Qt
 import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
-import sounddevice as sd
 import scipy.signal
 from scipy.signal import *
 
@@ -54,7 +53,6 @@ def create_sliders(sliders_number, labels_list, frame, alignment):
     frame.setLayout(layout)
     return sliders_list, indicators
 
-
 def clear(frame):
     layout = frame.layout()
     if layout is not None:
@@ -63,7 +61,6 @@ def clear(frame):
             widget = item.widget()
             if widget is not None:
                 widget.deleteLater()
-
 
 def speed(slider_value, speed_label):
     map_speed_factor = {
@@ -79,14 +76,12 @@ def speed(slider_value, speed_label):
     
     return time_interval
 
-
 def compute_fourier_transform(signal, Ts):
     fourier_transform = np.fft.rfft(signal)
     frequencies_fft = np.fft.rfftfreq(len(signal), Ts)
     amplitudes = np.abs(fourier_transform)
     phases = np.angle(fourier_transform)
     return amplitudes, frequencies_fft, phases
-
 
 def apply_smoothing_window(output_amplitudes, index, parameter, plot_widget, start, end , freq_comp):
     if parameter == 0:
@@ -119,28 +114,17 @@ def apply_smoothing_window(output_amplitudes, index, parameter, plot_widget, sta
 
         return smoothed_signal
 
-
 def freq_domain_plotting(freq_comp, output_amplitudes, plot_widget):
     plot_widget.clear()
     plot_widget.plot(freq_comp, output_amplitudes, pen="b")
     plot_widget.setLabel('left', 'Amplitude')
     plot_widget.setLabel('bottom', 'Frequency (Hz)')
 
-
 def compute_inverse_fourier_transform(new_amplitude, freq_comp, phases):
     new_amplitudes = new_amplitude
     new_fft_result = new_amplitudes * np.exp(1j * phases)
     inverse_fft = np.fft.irfft(new_fft_result)
     return inverse_fft
-
-
-def play_audio(player):
-    player.play()
-
-
-def pause_audio(player):
-    player.pause()
-
 
 def plot_specto(data, sample_rate, frame, checkbox):
     clear(frame)
@@ -165,11 +149,9 @@ def plot_specto(data, sample_rate, frame, checkbox):
         else:
             return
 
-
 def zoom(Input_plot_widget, output_plot_widget, zoom_factor):
     Input_plot_widget.getViewBox().scaleBy((zoom_factor, zoom_factor))
     output_plot_widget.getViewBox().scaleBy((zoom_factor, zoom_factor))
-
 
 def plot_waveform(data, sample_rate, plot_widget):
     time = np.arange(0, len(data)) / sample_rate
