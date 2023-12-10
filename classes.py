@@ -8,10 +8,11 @@ class WindowType:
 
 
 class Mode:
-    def __init__(self, labels, frq_range, num_sliders):
+    def __init__(self, labels, frq_range, ind_range, num_sliders):
         self.labels = labels
         self.frq_range = frq_range
+        self.ind_range = ind_range
         self.num_sliders = num_sliders
 
     def __str__(self):
-        return f"labels: {self.labels}, frq_range: {self.frq_range}, num_sliders: {self.num_sliders}"
+        return f"labels: {self.labels}, frq_range: {self.frq_range}, ind_range: {self.ind_range}, num_sliders: {self.num_sliders}"

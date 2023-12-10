@@ -21,6 +21,13 @@ def create_label_indicator(label_text, alignment):
 
     return label, indicator
 
+def update_button_icon(button, playing):
+    if playing:
+        icon = QIcon("icons/pause.png")
+        button.setIcon(icon)
+    else:
+        icon = QIcon("icons/play.png")
+        button.setIcon(icon)
 
 def create_sliders(sliders_number, labels_list, frame, alignment):
     clear(frame)
@@ -58,25 +65,7 @@ def clear(frame):
                 widget.deleteLater()
 
 
-def play_n_pause(button, timer_input, sound, player):
-    def set_icon(is_playing):
-        icon_path = "icons/pause.png" if is_playing else "icons/play.png"
-        icon = QIcon(icon_path)
-        button.setIcon(icon)
-
-    if timer_input.isActive():
-        timer_input.stop()
-        set_icon(False)
-        if sound:
-            pause_audio(player)
-    else:
-        timer_input.start(100)
-        set_icon(True)
-        if sound:
-            play_audio(player)
-
-
-def speed(slider_value, speed_label, timer, button):
+def speed(slider_value, speed_label):
     map_speed_factor = {
         1: 0.2,
         2: 0.5,
@@ -84,18 +73,11 @@ def speed(slider_value, speed_label, timer, button):
         4: 1.5,
         5: 2.0,
     }
-    icon = QIcon("icons/pause.png")  # Use the resource path
-    button.setIcon(icon)
     speed_factor = map_speed_factor[slider_value]
     speed_label.setText(f'x {speed_factor}')
     time_interval = int(100 / speed_factor)  # ms
     
-    update_speed(timer, time_interval)
-
-
-def update_speed(timer, time_interval):
-    timer.stop()
-    timer.start(time_interval)
+    return time_interval
 
 
 def compute_fourier_transform(signal, Ts):
@@ -171,6 +153,7 @@ def plot_specto(data, sample_rate, frame, checkbox):
             layout.addWidget(canvas)
 
             # Plot the spectrogram
+            plt.close()
             plt.figure()
             plt.specgram(data, Fs=sample_rate, cmap='viridis', aspect='auto')
             plt.xlabel('Time (s)')

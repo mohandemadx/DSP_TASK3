@@ -169,6 +169,9 @@
     </item>
     <item row="3" column="0" colspan="18">
      <widget class="QFrame" name="SliderFrame">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
       </property>
@@ -553,6 +556,9 @@
        </item>
        <item row="5" column="0">
         <widget class="QComboBox" name="window_comboBox">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
            <horstretch>0</horstretch>
@@ -626,6 +632,9 @@
        </item>
        <item row="3" column="0">
         <widget class="QFrame" name="AudioPlayerFrame">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -660,6 +669,9 @@
           </item>
           <item row="1" column="1">
            <widget class="QSlider" name="audioSlider1">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>

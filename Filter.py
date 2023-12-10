@@ -37,14 +37,20 @@ def limit_to_band(input_file, output_file, lowcut, highcut):
 # highcut = 4150  # Upper cutoff frequency in Hz
 
 
-input_file = "BeforeEditSounds\Animals\Eagle.wav"
-output_file = "eagle_out2.wav"
+input_file = "BeforeEditSounds\Musical\drums.wav"
+output_file = "drums_out.wav"
 lowcut = 3000 # Lower cutoff frequency in Hz
-highcut = 10000  # Upper cutoff frequency in Hz
+highcut = 5000  # Upper cutoff frequency in Hz
 
 limit_to_band(input_file, output_file, lowcut, highcut)
 
-# Wolf ==> 400, 800
-# Cow ==> 800, 1300
-# Eagle ==> 3000, 10000
-# Monkey ==> 1400, 3000
+# Wolf ==> 500, 720 ++++> 200, 1000 ?? 300Hz Thres
+# Cow ==> 1300, 1650 ++++> 1050, 1900
+# Eagle ==> 1800, 2300 +++> 1800, 2800
+# Monkey ==> 3000, 6000 +++> 2800, 10000
+
+# Drums ==> 1800, 3200 ++++> 1300,4000
+# Guitar ==> 600, 900 ++++> 200, 1200
+# Saxs ==> 500, 900 +++> 200, 1200
+# Triangle ==> 6500,14000
+# Piano ==> 1500, 4500
